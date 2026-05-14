@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Request Received</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #0f172a;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: #0f172a;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: #8c74fb;
+        }
+
+        .content {
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #0f172a;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #0f172a;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <div class="container">
+                    <div class="header"><a href="https://Bloomina.in" class="logo"><img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771920901826_Bloomina_transparent_blue.png" alt="Bloomina Logo" style="height: 48px; width: auto; max-width: 100%; display: block; margin: 0 auto;"></a></div>
+                    <div class="illustration-container" style="text-align: center; padding: 20px 40px 0;"><img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771927660343_product-comparison-rating-system-shopping-insights-1.png" style="max-width: 200px; height: auto;"></div>
+                    <div class="content">
+                        <h1>We received your return request 📦</h1>
+                        <p>We are reviewing your return request for <strong>{{product_name}}</strong>. You will hear
+                            back from us within 24-48 business hours with the next steps.</p>
+                        <a href="{{return_status_url}}" class="btn">View Return Status</a>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

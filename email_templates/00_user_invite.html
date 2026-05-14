@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Invited to Bloomina</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            color: #111827;
+        }
+
+        .wrapper {
+            padding: 40px 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 540px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 32px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(140, 116, 251, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            padding: 48px 20px 24px;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: #8c74fb;
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 24px;
+        }
+
+        .illustration-container {
+            text-align: center;
+            padding: 10px 40px;
+        }
+
+        .content {
+            padding: 24px 48px 48px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 900;
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #111827;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            color: #4b5563;
+        }
+
+        .btn-container {
+            margin: 40px 0;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #111827;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 20px 48px;
+            border-radius: 18px;
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 0.02em;
+            box-shadow: 0 15px 30px rgba(17, 24, 39, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .footer {
+            background-color: #f9fafb;
+            padding: 32px 48px;
+            text-align: center;
+            font-size: 13px;
+            color: #9ca3af;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .footer a {
+            color: #8c74fb;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .site-url {
+            font-family: monospace;
+            background: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #1f2937;
+            font-weight: bold;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .wrapper {
+                padding: 20px 10px;
+            }
+
+            .container {
+                border-radius: 24px;
+            }
+
+            .content {
+                padding: 20px 24px 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f0f2f5">
+        <tr>
+            <td align="center" class="wrapper">
+                <div class="container">
+                    <!-- Exclusive Badge -->
+                    <div class="header">
+                        <div class="badge">Special Invitation</div>
+                        <a href="https://Bloomina.in" style="text-decoration: none; display: block;">
+                            <img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771920901826_Bloomina_transparent_blue.png" 
+                                 alt="Bloomina Logo" 
+                                 style="height: 40px; width: auto; margin: 0 auto;">
+                        </a>
+                    </div>
+
+                    <!-- Invitation Illustration -->
+                    <div class="illustration-container">
+                        <img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771921621583_mega-creator%20(2).png" 
+                             alt="Invitation Invitation" 
+                             style="max-width: 200px; height: auto;">
+                    </div>
+
+                    <!-- Invitation Body -->
+                    <div class="content">
+                        <h1>You're officially invited!</h1>
+                        <p>You have been invited to create a new user profile on <span class="site-url text-indigo-600">{{ .SiteURL }}</span>.</p>
+                        <p>Join our team to manage inventory, fulfill orders, and help grow the Bloomina community.</p>
+                        
+                        <div class="btn-container">
+                            <a href="{{ .ConfirmationURL }}" class="btn">Accept My Invitation</a>
+                        </div>
+
+                        <p style="font-size: 14px; color: #9ca3af; margin-bottom: 0;">
+                            If you didn't expect this invitation, you can simply ignore this email.
+                        </p>
+                    </div>
+
+                    <!-- Professional Footer -->
+                    <div class="footer">
+                        <p style="margin-top: 0; margin-bottom: 12px;">Welcome to the future of retail.</p>
+                        <p style="margin-bottom: 0;">&copy; 2024 Bloomina. <a href="mailto:support@Bloomina.in">Contact Administrator</a></p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
+

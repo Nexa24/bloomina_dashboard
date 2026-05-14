@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Did you forget something? 🛒</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8f7ff; margin: 0; padding: 0; color: #111827; }
+        .wrapper { padding: 40px 20px; width: 100%; box-sizing: border-box; }
+        .container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); }
+        .header { text-align: center; padding: 40px 20px 20px; }
+        .logo { font-size: 24px; font-weight: 800; color: #111827; text-decoration: none; display: inline-block; }
+        .illustration-container { text-align: center; padding: 0 40px; margin-bottom: 20px; }
+        .content { padding: 0 40px 30px; }
+        h1 { font-size: 24px; font-weight: 800; margin-top: 0; margin-bottom: 20px; color: #111827; text-align: center; }
+        p { font-size: 15px; line-height: 1.62; margin-bottom: 18px; color: #4b5563; text-align: left; }
+        .highlight { color: #8c74fb; font-weight: 600; }
+        
+        .trust-section { background-color: #fcfbff; border: 2px solid #edebff; border-radius: 16px; padding: 20px; margin: 25px 0; text-align: left; }
+        .trust-item { display: flex; align-items: center; margin-bottom: 12px; font-size: 14px; color: #4b5563; font-weight: 500; }
+        .trust-icon { color: #8c74fb; font-size: 16px; margin-right: 12px; font-weight: bold; }
+
+        .cta-button { 
+            display: inline-block; 
+            background: linear-gradient(135deg, #1B4F9C 0%, #8c74fb 100%); 
+            color: white !important; 
+            padding: 16px 32px; 
+            border-radius: 14px; 
+            text-decoration: none; 
+            font-weight: 700; 
+            font-size: 16px; 
+            box-shadow: 0 10px 20px rgba(140, 116, 251, 0.3);
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8f7ff">
+        <tr><td align="center" class="wrapper"><div class="container">
+            <!-- Header Logo -->
+            <div class="header">
+                <a href="https://Bloomina.in" class="logo">
+                    <img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771920901826_Bloomina_transparent_blue.png" alt="Bloomina Logo" style="height: 50px; width: auto; max-width: 100%; display: block; margin: 0 auto;">
+                </a>
+            </div>
+            
+            <!-- Abandoned Cart Illustration -->
+            <div class="illustration-container">
+                <img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1774597975506_abandoned_cart.png" alt="Abandoned Cart" style="max-width: 100%; height: auto; border-radius: 12px;">
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <h1>Did you forget something? 🛒</h1>
+                
+                <p>Hi <span class="highlight">{$name|default:"there"}</span>,</p>
+                <p>We noticed you left some amazing items hanging out in your Bloomina cart. Don't worry, we've carefully saved them for you so you can pick up right where you left off!</p>
+
+                <!-- MailerLite Tip (Invisible to customers if deleted, but helps admin build it) -->
+                <div style="background: #fffcf0; border: 1px dashed #fbbf24; border-radius: 12px; padding: 15px; margin: 25px 0; color: #b45309; font-size: 12px; text-align: center;">
+                    <strong>[💡 MailerLite Tip]:</strong> Drag dynamic "Abandoned Cart" E-commerce block here in mailerlite!
+                </div>
+
+                <div style="text-align: center;">
+                    <a href="https://Bloomina.in/cart" class="cta-button">Claim My Cart 🛍️</a>
+                </div>
+
+                <div class="trust-section">
+                    <p style="margin-top: 0; margin-bottom: 15px; font-weight: 800; color: #111827; text-align: center;">Why shop with Bloomina?</p>
+                    <div class="trust-item"><span class="trust-icon">🔒</span> 100% Secure & Encrypted Checkout</div>
+                    <div class="trust-item"><span class="trust-icon">⚡</span> Fast & Reliable Shipping</div>
+                    <div class="trust-item"><span class="trust-icon">✨</span> Premium Quality Guaranteed</div>
+                    <div class="trust-item" style="margin-bottom: 0;"><span class="trust-icon">🤝</span> Easy, Hassle-Free Returns</div>
+                </div>
+
+                <p style="font-size: 13px; color: #8c74fb; font-weight: bold; background-color: #f8f7ff; padding: 15px; border-radius: 12px; text-align: center;">
+                    🎁 Pro Tip: You might have Trui Coins sitting in your wallet. Don't forget to apply them at checkout for an instant discount!
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #fcfbff; border-top: 1px solid #f3f0ff; padding: 40px; font-size: 14px; color: #6b7280;">
+                <p style="margin-top: 0; text-align: left;">Need help deciding? Email us at <a href="mailto:support@Bloomina.in" style="color: #8c74fb; text-decoration: none; font-weight: 600;">support@Bloomina.in</a> and our team will get right back to you!</p>
+                <div style="margin-top: 25px; text-align: left;">
+                    <p style="margin: 0; line-height: 1.6;">Stay True,<br><b>The Bloomina Team</b></p>
+                </div>
+                <div style="margin-top: 30px; font-size: 11px; text-align: center; color: #9ca3af;">
+                    <a href="{$unsubscribe}" style="color: #9ca3af; text-decoration: underline;">Unsubscribe</a> | <a href="https://Bloomina.in/terms" style="color: #9ca3af; text-decoration: underline;">Terms of Service</a>
+                </div>
+            </div>
+        </div></td></tr>
+    </table>
+</body>
+</html>
+

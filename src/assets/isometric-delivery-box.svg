@@ -1,0 +1,263 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+    <defs>
+        <!-- Gradients for the cardboard box to give it that 3D warm premium look -->
+        <!-- Front side of the box -->
+        <linearGradient id="boxFrontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#DE8C63" />
+            <stop offset="100%" stop-color="#C5754E" />
+        </linearGradient>
+        
+        <!-- Right side of the box (in shadow) -->
+        <linearGradient id="boxSideGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#C06D45" />
+            <stop offset="100%" stop-color="#A55A36" />
+        </linearGradient>
+        
+        <!-- Inside of the box (deep shadow) -->
+        <linearGradient id="boxInsideGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#7B4125" />
+            <stop offset="100%" stop-color="#562B16" />
+        </linearGradient>
+        
+        <!-- Top flaps facing light -->
+        <linearGradient id="boxFlapLight" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F2A679" />
+            <stop offset="100%" stop-color="#E89565" />
+        </linearGradient>
+        
+        <!-- Top flaps facing away -->
+        <linearGradient id="boxFlapDark" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#DC895E" />
+            <stop offset="100%" stop-color="#CD784D" />
+        </linearGradient>
+
+        <!-- Tape gradient -->
+        <linearGradient id="tapeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#FCE1C6" stop-opacity="0.95" />
+            <stop offset="100%" stop-color="#F2CA9E" stop-opacity="0.95" />
+        </linearGradient>
+
+        <!-- Drop shadow to ground the box -->
+        <filter id="dropShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="20" stdDeviation="10" flood-color="#000000" flood-opacity="0.08" />
+        </filter>
+        
+        <!-- Glow for the checkmark -->
+        <filter id="checkGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#4ADE80" flood-opacity="0.4" />
+        </filter>
+
+        <!-- Checkmark gradient -->
+        <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4ADE80" />
+            <stop offset="100%" stop-color="#22C55E" />
+        </linearGradient>
+    </defs>
+
+    <style>
+        /* 
+         * SCENE TOTAL DURATION: 4 seconds 
+         * Loooping infinitely as a seamless presentation
+         */
+
+        /* 1. Box Drops In and Bounces */
+        @keyframes dropAndBounce {
+            0% { transform: translateY(-250px) scale(0.9); opacity: 0; }
+            15% { transform: translateY(15px) scale(1.05, 0.9); opacity: 1; }
+            22% { transform: translateY(-8px) scale(0.98, 1.02); }
+            30% { transform: translateY(0) scale(1, 1); opacity: 1; }
+            80% { transform: translateY(0) scale(1, 1); opacity: 1; }
+            85% { transform: scale(1.1); opacity: 0.8; }
+            95%, 100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* 2. Floor Shadow Reacts to the Drop/Jump */
+        @keyframes shadowReact {
+            0% { transform: scale(0.3); opacity: 0; }
+            15% { transform: scale(1.2); opacity: 0.8; }
+            22% { transform: scale(0.9); opacity: 0.4; }
+            30% { transform: scale(1); opacity: 0.6; }
+            80% { transform: scale(1); opacity: 0.6; }
+            85% { transform: scale(0.5); opacity: 1; }
+            95%, 100% { transform: scale(1.4); opacity: 0; }
+        }
+
+        /* 3. The Isometric Flaps Folding Sequences */
+        
+        /* 3a. Right Flap (Folds first, into the center) */
+        @keyframes foldRight {
+            0%, 35% { transform: rotate3d(-1, 0.5, 0, 0deg); transform-origin: 300px 175px; }
+            45%, 100% { transform: rotate3d(-1, 0.58, 0, -115deg); transform-origin: 300px 175px; fill: url(#boxFlapDark); }
+        }
+
+        /* 3b. Left Flap (Folds second) */
+        @keyframes foldLeft {
+            0%, 38% { transform: rotate3d(1, 0.5, 0, 0deg); transform-origin: 100px 175px; }
+            48%, 100% { transform: rotate3d(1, 0.58, 0, -115deg); transform-origin: 100px 175px; fill: url(#boxFlapDark); }
+        }
+
+        /* 3c. Back/Top Flap (Folds third) */
+        @keyframes foldBack {
+            0%, 42% { transform: rotate3d(1, -0.5, 0, 0deg); transform-origin: 200px 125px; }
+            52%, 100% { transform: rotate3d(1, -0.58, 0, 115deg); transform-origin: 200px 125px; }
+        }
+
+        /* 3d. Front/Bottom Flap (Folds last, becomes the top lid) */
+        @keyframes foldFront {
+            0%, 46% { transform: rotate3d(-1, -0.5, 0, 0deg); transform-origin: 200px 225px; }
+            56%, 100% { transform: rotate3d(-1, -0.58, 0, 115deg); transform-origin: 200px 225px; }
+        }
+
+        /* 4. Tape Appearing (Sealing the box) */
+        @keyframes drawTapeHorizontal {
+            0%, 60% { stroke-dasharray: 0, 160; opacity: 0; }
+            65%, 100% { stroke-dasharray: 160, 0; opacity: 1; }
+        }
+
+        @keyframes drawTapeVertical {
+            0%, 65% { stroke-dasharray: 0, 160; opacity: 0; }
+            70%, 100% { stroke-dasharray: 160, 0; opacity: 1; }
+        }
+
+        /* 5. The Checkmark Pop Reveal */
+        @keyframes checkmarkPop {
+            0%, 85% { transform: scale(0); opacity: 0; }
+            92% { transform: scale(1.15) rotate(5deg); opacity: 1; filter: url(#checkGlow); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; filter: url(#checkGlow); }
+        }
+
+        @keyframes drawCheckPath {
+            0%, 90% { stroke-dasharray: 0, 120; opacity: 0; }
+            100% { stroke-dasharray: 120, 0; opacity: 1; }
+        }
+        
+        @keyframes circleRingExpand {
+            0%, 88% { r: 50; opacity: 0; stroke-width: 15; }
+            95% { r: 100; opacity: 0.5; stroke-width: 2; }
+            100% { r: 120; opacity: 0; stroke-width: 0; }
+        }
+
+        /* Class Assignments */
+        .anim-scene {
+            animation: dropAndBounce 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+            transform-origin: 200px 250px;
+        }
+
+        .anim-shadow {
+            animation: shadowReact 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+            transform-origin: 200px 320px;
+        }
+
+        .anim-flap-r { animation: foldRight 4s ease-in-out infinite; }
+        .anim-flap-l { animation: foldLeft 4s ease-in-out infinite; }
+        .anim-flap-back { animation: foldBack 4s ease-in-out infinite; }
+        .anim-flap-front { animation: foldFront 4s ease-in-out infinite; }
+        
+        .anim-tape-h { animation: drawTapeHorizontal 4s ease-in-out infinite; stroke-dashoffset: 0; }
+        .anim-tape-v { animation: drawTapeVertical 4s ease-in-out infinite; stroke-dashoffset: 0; }
+
+        .anim-check-container {
+            animation: checkmarkPop 4s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+            transform-origin: 200px 200px;
+        }
+
+        .anim-check-path { animation: drawCheckPath 4s ease-out infinite forwards; }
+        .anim-check-ring { animation: circleRingExpand 4s ease-out infinite; transform-origin: 200px 200px; }
+        
+    </style>
+
+    <!-- 1. The Floor Shadow -->
+    <ellipse class="anim-shadow" cx="200" cy="330" rx="95" ry="30" fill="#E5E7EB" />
+    <ellipse class="anim-shadow" cx="200" cy="330" rx="60" ry="15" fill="#D1D5DB" />
+
+    <!-- 2. The Main Scene Container (Handles the Drop & Exit) -->
+    <g class="anim-scene">
+        
+        <!-- BASE BOX: The Isometric Cube -->
+        
+        <!-- Inside Floor & Back Walls (Visible while open) -->
+        <polygon points="100,175 200,125 300,175 200,225" fill="url(#boxInsideGrad)" />
+        <polygon points="200,125 300,175 300,240 200,190" fill="#6B3317" opacity="0.8"/>
+        <polygon points="100,175 200,125 200,190 100,240" fill="#6B3317" opacity="0.6"/>
+
+        <!-- Front/Left Outer Wall -->
+        <!-- Starts Left Middle, drops down, slants right, goes up to Center Front -->
+        <polygon points="100,175 100,265 200,315 200,225" fill="url(#boxFrontGrad)" filter="url(#dropShadow)" />
+        <path d="M 100 175 L 100 265" stroke="#FCE1C6" stroke-width="1.5" stroke-opacity="0.3" fill="none"/>
+        
+        <!-- Right Outer Wall -->
+        <!-- Starts Right Middle, drops down, slants left, goes up to Center Front -->
+        <polygon points="300,175 300,265 200,315 200,225" fill="url(#boxSideGrad)" filter="url(#dropShadow)" />
+        <!-- Edge highlights -->
+        <path d="M 200 225 L 200 315" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.2" fill="none"/>
+        <path d="M 200 225 L 300 175" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.2" fill="none"/>
+        <path d="M 200 225 L 100 175" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.2" fill="none"/>
+
+        <!-- FLAPS -->
+        <!-- Right Flap (Folds first) -->
+        <!-- Extends UP and RIGHT -->
+        <polygon class="anim-flap-r" points="200,125 300,175 350,150 250,100" fill="url(#boxFlapLight)" />
+
+        <!-- Left Flap (Folds second) -->
+        <!-- Extends UP and LEFT -->
+        <polygon class="anim-flap-l" points="100,175 200,125 150,100 50,150" fill="url(#boxFlapLight)" />
+
+        <!-- Back Top Flap (Folds third) -->
+        <!-- Extends STRAIGHT UP/BACK -->
+        <polygon class="anim-flap-back" points="100,175 140,110 240,60 200,125" fill="url(#boxFlapDark)" />
+
+        <!-- Front Bottom Flap (Folds last, covers everything) -->
+        <!-- Extending DOWN/FRONT before folding UP/BACK to close -->
+        <polygon class="anim-flap-front" points="200,225 300,175 260,240 160,290" fill="url(#boxFlapLight)" />
+        <!-- Hidden underlying shape used to create the sealed top surface look during CSS transform -->
+        <polygon class="anim-flap-front" points="100,175 200,125 300,175 200,225" fill="url(#boxFlapLight)" opacity="0" />
+
+        <!-- TAPE SEAL -->
+        <g opacity="0.9">
+            <!-- X/Horizontal Tape -->
+            <!-- Drawn corner to corner along the isometric top plane -->
+            <path class="anim-tape-h" d="M 120 185 L 280 165" stroke="url(#tapeGrad)" stroke-width="15" fill="none" pathLength="160" />
+            
+            <!-- Y/Vertical Tape -->
+            <!-- Drawn corner to corner intersecting the X tape -->
+            <path class="anim-tape-v" d="M 160 145 L 240 205" stroke="url(#tapeGrad)" stroke-width="15" fill="none" pathLength="160" stroke-linecap="round" />
+            <path class="anim-tape-v" d="M 200 175 L 200 280" stroke="url(#tapeGrad)" stroke-width="15" fill="none" pathLength="160" opacity="0.6" stroke-linecap="butt" />
+        </g>
+        
+        <!-- Decoration: Shipping label on the front side -->
+        <g opacity="0.8" transform="skewY(26.5) translate(120, 110)">
+            <rect x="0" y="0" width="35" height="45" rx="2" fill="#FFFFFF" />
+            <line x1="5" y1="8" x2="30" y2="8" stroke="#A8A29E" stroke-width="2" />
+            <line x1="5" y1="14" x2="20" y2="14" stroke="#A8A29E" stroke-width="2" />
+            <rect x="5" y="20" width="25" height="20" fill="#D6D3D1" />
+        </g>
+
+    </g>
+
+    <!-- 3. The Grand Checkmark Sequence -->
+    <!-- Contains the popping checkmark circle and explosive ring effect -->
+    <g class="anim-check-container" opacity="0">
+        
+        <!-- Expanding shockwave ring -->
+        <circle class="anim-check-ring" cx="200" cy="200" r="50" fill="none" stroke="#4ADE80" stroke-width="15" />
+        
+        <!-- Main Green Circle -->
+        <circle cx="200" cy="200" r="75" fill="url(#checkGrad)" filter="url(#checkGlow)" />
+        
+        <!-- Inner shadow/highlight to give button depth -->
+        <path d="M 125 200 A 75 75 0 0 1 275 200" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="4" fill="none" />
+        <path d="M 125 200 A 75 75 0 0 0 275 200" stroke="#000000" stroke-opacity="0.1" stroke-width="4" fill="none" />
+
+        <!-- Crisp White Checkmark Path -->
+        <path class="anim-check-path" 
+              d="M 160 200 L 185 225 L 245 165" 
+              stroke="#FFFFFF" 
+              stroke-width="16" 
+              stroke-linecap="round" 
+              stroke-linejoin="round" 
+              fill="none" 
+              pathLength="120" />
+    </g>
+
+</svg>
+

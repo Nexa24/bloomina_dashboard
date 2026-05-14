@@ -1,0 +1,7 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Plus, Filter, Upload, Download, MoreHorizontal, Edit, Trash2, Image as ImageIcon, X, Save, ArrowLeft, ChevronDown, Check, DollarSign, Box, Tag, Layers, Settings2, CheckCircle, AlertCircle, RefreshCw, ArrowUpDown, Ruler, Palette } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
+import { useAlert } from '../../contexts/AlertContext';
+
+const CustomDropdown = ({ options, value, onChange, placeholder }) => {
+    const [isOpen, setIsOpen] = useState(false);

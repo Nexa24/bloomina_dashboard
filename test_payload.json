@@ -1,0 +1,11 @@
+{
+  "type": "INSERT",
+  "record": {
+    "id": "test-order-id-123",
+    "email": "test@example.com",
+    "customer_name": "Test User",
+    "total": 100,
+    "status": "Processing",
+    "items": [{"title": "Test Item", "quantity": 1, "price": 100}]
+  }
+}

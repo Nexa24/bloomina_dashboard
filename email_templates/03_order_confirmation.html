@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; color: #0f172a; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.04); }
+        .header { text-align: center; padding: 40px 20px 20px; }
+        .logo { font-size: 28px; font-weight: 900; color: #0f172a; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .logo-icon { color: #8c74fb; }
+        .content { padding: 30px 40px; text-align: left; }
+        h1 { font-size: 24px; font-weight: 800; margin-top: 0; margin-bottom: 8px; color: #0f172a; text-align: center; }
+        .subtitle { text-align: center; color: #475569; font-size: 15px; margin-bottom: 32px; }
+        p { font-size: 15px; line-height: 1.6; margin-bottom: 24px; color: #475569; }
+        .order-summary { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+        .summary-title { font-size: 14px; font-weight: bold; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-top: 0; margin-bottom: 16px; }
+        .item-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; }
+        .item-name { color: #0f172a; font-weight: 600; }
+        .item-price { color: #475569; }
+        .total-row { display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0; font-size: 18px; font-weight: 800; color: #0f172a; }
+        .btn { display: inline-block; text-align: center; background-color: #8c74fb; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 12px; font-weight: bold; font-size: 16px; }
+        .footer { background-color: #f1f5f9; padding: 30px 40px; text-align: center; font-size: 13px; color: #64748b; }
+        .footer a { color: #8c74fb; text-decoration: none; font-weight: 600; margin: 0 8px; }
+        @media only screen and (max-width: 600px) { .container { margin: 20px; border-radius: 12px; } .content, .footer { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <div class="container">
+                    <div class="header">
+                        <a href="https://Bloomina.in" class="logo"><img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771920901826_Bloomina_transparent_blue.png" alt="Bloomina Logo" style="height: 48px; width: auto; max-width: 100%; display: block; margin: 0 auto;"></a>
+                    </div>
+                    <div class="illustration-container" style="text-align: center; padding: 20px 40px 0;"><img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771921815694_glossy-ecommerce.png" style="max-width: 200px; height: auto;"></div>
+                    <div class="content">
+                        <h1>Thanks for your order! 🎉</h1>
+                        <p class="subtitle">Hi {{first_name}}, we've received your order #{{order_id}} and are getting it ready to be shipped.</p>
+                        
+                        <div class="order-summary">
+                            <h3 class="summary-title">Order Summary</h3>
+                            <!-- Loop items here -->
+                            <div class="item-row">
+                                <span class="item-name">1x Essential Hoodie - Black, L</span>
+                                <span class="item-price">₹2,499</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Total</span>
+                                <span>{{total_amount}}</span>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-bottom: 32px;">
+                            <a href="{{order_status_url}}" class="btn">View Order Status</a>
+                        </div>
+                        
+                        <p>We'll send you another email when your order has been shipped. If you need to make changes, please contact us within the next hour.</p>
+                    </div>
+                    <div class="footer">
+                        <p>Need help? Connect with us via:</p>
+                        <p>
+                            <a href="mailto:support@Bloomina.in">Email Support</a> | 
+                            <a href="https://wa.me/message/YOUR_NUMBER">WhatsApp</a>
+                        </p>
+                        <p style="margin-top: 20px; font-size: 11px;">Bloomina Inc. | 123 Commerce St, Fashion City, IN 110001</p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+

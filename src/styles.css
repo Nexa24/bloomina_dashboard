@@ -1,0 +1,210 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Colors - Bento Theme */
+  --color-bg-primary: #FAFAFA;
+  /* Soft White */
+  --color-bg-secondary: #F3F4F6;
+  /* Gray 100 */
+
+  --color-accent: #944555;
+  /* Bloomina Brand Rose */
+
+  --color-text-main: #0F172A;
+  /* Slate 900 */
+  --color-text-muted: #64748B;
+  /* Slate 500 */
+  --color-border: #E2E8F0;
+  /* Slate 200 */
+
+  /* Typography */
+  --font-main: 'Inter', sans-serif;
+
+  /* Spacing */
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 4rem;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s ease;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Utilities */
+.container {
+  max-width: 1440px;
+  /* Wider for Bento Grid */
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.t-heading {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+/* Component Classes */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-accent);
+  color: white;
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 9999px;
+  /* Pill Shape */
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(27, 79, 156, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(27, 79, 156, 0.3);
+  filter: brightness(1.1);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  background: white;
+  color: var(--color-text-main);
+  padding: 0.75rem 2rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-text-muted);
+}
+
+/* Animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+}
+
+/* Sticky Mobile Bottom for later */
+.sticky-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+}
+
+/* Eye-saving soft light mode */
+html:not(.dark) {
+  --tw-bg-opacity: 1;
+}
+
+html:not(.dark) .bg-\[\#f8fafc\],
+html:not(.dark) body,
+html:not(.dark) main {
+  background-color: #ebeef2 !important;
+}
+
+html:not(.dark) .bg-white {
+  background-color: #f4f5f8 !important;
+}
+
+html:not(.dark) .bg-slate-50 {
+  background-color: #e2e6eb !important;
+}
+
+html:not(.dark) .bg-slate-100 {
+  background-color: #d1d6dc !important;
+}
+
+html:not(.dark) .text-slate-900 {
+  color: #1e2530 !important;
+}
+
+html:not(.dark) .text-slate-800 {
+  color: #2c3645 !important;
+}
+
+html:not(.dark) .text-slate-500 {
+  color: #596778 !important;
+}
+
+html:not(.dark) .border-slate-50,
+html:not(.dark) .border-slate-100 {
+  border-color: #dee4ea !important;
+}
+
+html:not(.dark) .border-slate-200 {
+  border-color: #c9d3de !important;
+}
+
+html:not(.dark) .shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05) !important;
+}

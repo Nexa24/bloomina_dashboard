@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Cancelled</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #0f172a;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: #0f172a;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: #8c74fb;
+        }
+
+        .content {
+            padding: 30px 40px;
+            text-align: left;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #0f172a;
+            text-align: center;
+        }
+
+        .alert-box {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #64748b;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc">
+        <tr>
+            <td align="center" style="padding: 20px;">
+                <div class="container">
+                    <div class="header"><a href="https://Bloomina.in" class="logo"><img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771920901826_Bloomina_transparent_blue.png" alt="Bloomina Logo" style="height: 48px; width: auto; max-width: 100%; display: block; margin: 0 auto;"></a></div>
+                    <div class="illustration-container" style="text-align: center; padding: 20px 40px 0;"><img src="https://hszccnxojpwfqjqzymlx.supabase.co/storage/v1/object/public/portfolio/1771927188982_credit-card-with-decline-symbol-failed-payment-notification.png" style="max-width: 200px; height: auto;"></div>
+                    <div class="content">
+                        <h1>Order Cancelled. ❌</h1>
+                        <div class="alert-box">
+                            <h3 style="margin-top:0; color:#475569;">Order #{{order_id}} has been voided</h3>
+                            <p style="margin-bottom:0; color:#64748b; font-size:14px;">If a charge was made to your
+                                card, it has been automatically reversed.</p>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
