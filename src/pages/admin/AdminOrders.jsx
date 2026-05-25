@@ -4,7 +4,7 @@ import {
     Search, Filter, Calendar, ShoppingBag, Truck, CheckCircle2, XCircle, Clock, Eye, ArrowLeft, Download, 
     Phone, Mail, MapPin, ExternalLink, MoreVertical, Loader2, Package, LayoutGrid, List, ChevronRight, 
     Clipboard, Trash2, Maximize2, Send, MessageSquare, FileText, Check, CheckCircle, RefreshCw, Wallet, 
-    ChevronDown, Printer, Camera
+    ChevronDown, Printer, Camera, Plus
 } from 'lucide-react';
 import { useAlert } from '../../contexts/AlertContext';
 import CustomSelect from '../../components/CustomSelect';
@@ -26,6 +26,212 @@ const AdminOrders = () => {
     const [customUpiId, setCustomUpiId] = useState('');
     const [isAdminAlertOpen, setIsAdminAlertOpen] = useState(false);
     const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+
+    // Create Manual Order Modal States
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [createLoading, setCreateLoading] = useState(false);
+    const [newOrderCustomer, setNewOrderCustomer] = useState({ name: '', email: '', phone: '' });
+    const [newOrderShipping, setNewOrderShipping] = useState({ street: '', city: '', state: '', zip: '', country: 'India' });
+    const [newOrderItems, setNewOrderItems] = useState([]);
+    const [newOrderPayment, setNewOrderPayment] = useState({ method: 'COD', status: 'Processing' });
+    const [newOrderDiscount, setNewOrderDiscount] = useState(0);
+    const [newOrderShippingCost, setNewOrderShippingCost] = useState(0);
+    
+    // Product searching inside modal
+    const [prodSearchQuery, setProdSearchQuery] = useState('');
+    const [foundProducts, setFoundProducts] = useState([]);
+    const [isSearchingProducts, setIsSearchingProducts] = useState(false);
+    const [selectedProductForAdd, setSelectedProductForAdd] = useState(null);
+    const [selectedVariantSize, setSelectedVariantSize] = useState('');
+    const [selectedVariantColor, setSelectedVariantColor] = useState('');
+    const [selectedItemQuantity, setSelectedItemQuantity] = useState(1);
+
+    const searchProducts = async (query) => {
+        setIsSearchingProducts(true);
+        try {
+            let q = supabase
+                .from('products')
+                .select('id, name, price, images, variants, colorConfigs')
+                .eq('status', 'Active')
+                .limit(10);
+            
+            if (query.trim()) {
+                q = q.or(`name.ilike.%${query}%,sku.ilike.%${query}%`);
+            } else {
+                q = q.order('name', { ascending: true });
+            }
+
+            const { data, error } = await q;
+            if (error) throw error;
+            setFoundProducts(data || []);
+        } catch (e) {
+            console.error("Error searching products:", e);
+        } finally {
+            setIsSearchingProducts(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!isCreateModalOpen) {
+            setFoundProducts([]);
+            setProdSearchQuery('');
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            searchProducts(prodSearchQuery);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [isCreateModalOpen, prodSearchQuery]);
+
+    const handleAddProductToOrder = () => {
+        if (!selectedProductForAdd) return;
+        
+        // If product has size variants and none selected
+        const sizeVar = selectedProductForAdd.variants?.find(v => v.name === 'Size');
+        if (sizeVar?.values?.length > 0 && !selectedVariantSize) {
+            showAlert({ title: 'Select Size', message: 'Please select a size for this product.', type: 'warning' });
+            return;
+        }
+
+        // If product has color configs and none selected
+        if (selectedProductForAdd.colorConfigs?.length > 0 && !selectedVariantColor) {
+            showAlert({ title: 'Select Color', message: 'Please select a color for this product.', type: 'warning' });
+            return;
+        }
+
+        // Find the color config to retrieve its image
+        const chosenColorConfig = selectedProductForAdd.colorConfigs?.find(c => c.name === selectedVariantColor);
+        const itemImage = chosenColorConfig?.images?.[0] || selectedProductForAdd.images?.[0] || '';
+        
+        const newItem = {
+            productId: selectedProductForAdd.id,
+            id: selectedProductForAdd.id,
+            title: selectedProductForAdd.name,
+            price: Number(selectedProductForAdd.price),
+            quantity: Number(selectedItemQuantity),
+            image: itemImage,
+            size: selectedVariantSize || null,
+            color: selectedVariantColor || null
+        };
+        
+        const existingIndex = newOrderItems.findIndex(item => 
+            item.id === newItem.id && 
+            item.size === newItem.size && 
+            item.color === newItem.color
+        );
+        
+        if (existingIndex >= 0) {
+            const updated = [...newOrderItems];
+            updated[existingIndex].quantity += newItem.quantity;
+            setNewOrderItems(updated);
+        } else {
+            setNewOrderItems([...newOrderItems, newItem]);
+        }
+        
+        // Reset
+        setSelectedProductForAdd(null);
+        setSelectedVariantSize('');
+        setSelectedVariantColor('');
+        setSelectedItemQuantity(1);
+        setProdSearchQuery('');
+        setFoundProducts([]);
+    };
+
+    const handleCreateManualOrder = async (e) => {
+        e.preventDefault();
+        
+        if (!newOrderCustomer.name.trim()) {
+            showAlert({ title: 'Error', message: 'Customer name is required.', type: 'danger' });
+            return;
+        }
+        if (newOrderItems.length === 0) {
+            showAlert({ title: 'Error', message: 'Please add at least one item to the order.', type: 'danger' });
+            return;
+        }
+        
+        setCreateLoading(true);
+        try {
+            const orderSubtotal = newOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const orderTotal = Math.max(0, orderSubtotal + Number(newOrderShippingCost) - Number(newOrderDiscount));
+
+            const orderRow = {
+                status: newOrderPayment.status,
+                customer_name: newOrderCustomer.name.trim(),
+                email: newOrderCustomer.email.trim() || null,
+                phone: newOrderCustomer.phone.trim() || null,
+                subtotal: orderSubtotal,
+                discount_amount: Number(newOrderDiscount),
+                shipping_cost: Number(newOrderShippingCost),
+                total: orderTotal,
+                items: newOrderItems,
+                shipping_address: {
+                    street: newOrderShipping.street.trim() || null,
+                    city: newOrderShipping.city.trim() || null,
+                    state: newOrderShipping.state.trim() || null,
+                    zip: newOrderShipping.zip.trim() || null,
+                    country: newOrderShipping.country.trim() || 'India'
+                },
+                payment_method: newOrderPayment.method,
+                razorpay_payment_id: newOrderPayment.method === 'Razorpay' ? `manual_${Math.random().toString(36).substr(2, 9)}` : null,
+                created_at: new Date().toISOString()
+            };
+            console.log("[AdminOrders] Attempting to create manual order with payload:", orderRow);
+
+            // Timeout after 15 seconds to prevent permanent UI spinner hanging
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Supabase insert request timed out after 15 seconds")), 15000)
+            );
+
+            const supabasePromise = (async () => {
+                return await supabase
+                    .from('orders')
+                    .insert([orderRow])
+                    .select();
+            })();
+
+            const response = await Promise.race([supabasePromise, timeoutPromise]);
+            console.log("[AdminOrders] Supabase response received:", response);
+
+            const { data, error } = response;
+                
+            if (error) throw error;
+            
+            const createdOrder = data && data[0];
+            if (!createdOrder) {
+                throw new Error("No data returned from database insert.");
+            }
+            
+            showAlert({
+                title: 'Order Created',
+                message: `Manual order #${(createdOrder.id || '').toUpperCase()} created successfully.`,
+                type: 'success',
+                showCancel: false,
+                confirmText: 'Awesome'
+            });
+            
+            setIsCreateModalOpen(false);
+            setNewOrderCustomer({ name: '', email: '', phone: '' });
+            setNewOrderShipping({ street: '', city: '', state: '', zip: '', country: 'India' });
+            setNewOrderItems([]);
+            setNewOrderPayment({ method: 'COD', status: 'Processing' });
+            setNewOrderDiscount(0);
+            setNewOrderShippingCost(0);
+            
+            fetchOrders();
+            
+        } catch (error) {
+            console.error("Failed to create order:", error);
+            showAlert({
+                title: 'Creation Failed',
+                message: 'Could not create manual order: ' + error.message,
+                type: 'danger'
+            });
+        } finally {
+            setCreateLoading(false);
+        }
+    };
 
     const toggleSelectOrder = (orderId, e) => {
         if (e) e.stopPropagation();
@@ -315,6 +521,13 @@ const AdminOrders = () => {
                     </div>
                 </div>
                 <div className="flex gap-2">
+                    <button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>Create Order</span>
+                    </button>
                     <button 
                         onClick={fetchOrders} 
                         disabled={isLoading}
@@ -729,6 +942,445 @@ const AdminOrders = () => {
                                     ))}
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {isCreateModalOpen && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 overflow-y-auto">
+                    <div 
+                        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in" 
+                        onClick={() => {
+                            if (!createLoading) setIsCreateModalOpen(false);
+                        }}
+                    ></div>
+                    <div className="relative bg-white dark:bg-[#1a1c23] rounded-3xl w-full max-w-4xl shadow-2xl border border-slate-100 dark:border-slate-800/80 animate-scale-in flex flex-col my-8 max-h-[90vh] overflow-hidden">
+                        {/* Header */}
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20 sticky top-0 z-10 backdrop-blur-md rounded-t-3xl">
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Create Manual Order</h3>
+                                <p className="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest mt-0.5">Input order details and configure customer cart</p>
+                            </div>
+                            <button 
+                                onClick={() => setIsCreateModalOpen(false)}
+                                disabled={createLoading}
+                                className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all disabled:opacity-50"
+                            >
+                                <XCircle className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-700 dark:text-slate-350">
+                            <form onSubmit={handleCreateManualOrder} className="space-y-6">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {/* Left Column: Customer & Shipping Details */}
+                                    <div className="space-y-6">
+                                        {/* Customer Form */}
+                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                            <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                <Phone className="w-3.5 h-3.5 text-[#944555]" /> Customer Information
+                                            </h4>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Customer Name *</label>
+                                                    <input 
+                                                        type="text" 
+                                                        required
+                                                        value={newOrderCustomer.name} 
+                                                        onChange={(e) => setNewOrderCustomer({ ...newOrderCustomer, name: e.target.value })} 
+                                                        placeholder="Full Name" 
+                                                        className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
+                                                        <input 
+                                                            type="email" 
+                                                            value={newOrderCustomer.email} 
+                                                            onChange={(e) => setNewOrderCustomer({ ...newOrderCustomer, email: e.target.value })} 
+                                                            placeholder="customer@email.com" 
+                                                            className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Phone Number</label>
+                                                        <input 
+                                                            type="tel" 
+                                                            value={newOrderCustomer.phone} 
+                                                            onChange={(e) => setNewOrderCustomer({ ...newOrderCustomer, phone: e.target.value })} 
+                                                            placeholder="e.g. +919876543210" 
+                                                            className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Shipping Address Form */}
+                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                            <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                <MapPin className="w-3.5 h-3.5 text-[#944555]" /> Shipping Address
+                                            </h4>
+                                            <div className="space-y-3">
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Street Address</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={newOrderShipping.street} 
+                                                        onChange={(e) => setNewOrderShipping({ ...newOrderShipping, street: e.target.value })} 
+                                                        placeholder="Flat/House no., Apartment, Street name" 
+                                                        className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">City</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={newOrderShipping.city} 
+                                                            onChange={(e) => setNewOrderShipping({ ...newOrderShipping, city: e.target.value })} 
+                                                            placeholder="City" 
+                                                            className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">State</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={newOrderShipping.state} 
+                                                            onChange={(e) => setNewOrderShipping({ ...newOrderShipping, state: e.target.value })} 
+                                                            placeholder="State" 
+                                                            className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">ZIP / Postal Code</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={newOrderShipping.zip} 
+                                                            onChange={(e) => setNewOrderShipping({ ...newOrderShipping, zip: e.target.value })} 
+                                                            placeholder="ZIP Code" 
+                                                            className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Country</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={newOrderShipping.country} 
+                                                            onChange={(e) => setNewOrderShipping({ ...newOrderShipping, country: e.target.value })} 
+                                                            placeholder="India" 
+                                                            className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-805 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Payment and Status Options */}
+                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                            <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                <Wallet className="w-3.5 h-3.5 text-[#944555]" /> Logistics & Status
+                                            </h4>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Payment Method</label>
+                                                    <select 
+                                                        value={newOrderPayment.method} 
+                                                        onChange={(e) => setNewOrderPayment({ ...newOrderPayment, method: e.target.value })} 
+                                                        className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                    >
+                                                        <option value="COD">Cash on Delivery (COD)</option>
+                                                        <option value="UPI">UPI / GPay / PhonePe</option>
+                                                        <option value="Razorpay">Razorpay Online</option>
+                                                        <option value="WhatsApp">WhatsApp Purchase</option>
+                                                        <option value="Bank Transfer">Bank Transfer</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Initial Order Status</label>
+                                                    <select 
+                                                        value={newOrderPayment.status} 
+                                                        onChange={(e) => setNewOrderPayment({ ...newOrderPayment, status: e.target.value })} 
+                                                        className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                    >
+                                                        <option value="Processing">Processing</option>
+                                                        <option value="Payment Pending">Payment Pending</option>
+                                                        <option value="Payment Done">Payment Done</option>
+                                                        <option value="Shipped">Shipped</option>
+                                                        <option value="Delivered">Delivered</option>
+                                                        <option value="Cancelled">Cancelled</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Column: Products Selection & Pricing */}
+                                    <div className="space-y-6">
+                                        {/* Products Add Section */}
+                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                            <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                <ShoppingBag className="w-3.5 h-3.5 text-[#944555]" /> Add Items to Order
+                                            </h4>
+
+                                            {/* Product Search */}
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input 
+                                                    type="text"
+                                                    value={prodSearchQuery}
+                                                    onChange={(e) => {
+                                                        setProdSearchQuery(e.target.value);
+                                                    }}
+                                                    placeholder="Search product by name..."
+                                                    className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                />
+                                                {isSearchingProducts && (
+                                                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#944555] animate-spin" />
+                                                )}
+                                            </div>
+
+                                            {/* Found Products List */}
+                                            {foundProducts.length > 0 && (
+                                                <div className="border border-slate-150 dark:border-slate-800/80 rounded-xl overflow-hidden max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-[#16171e]">
+                                                    {foundProducts.map((prod) => (
+                                                        <div 
+                                                            key={prod.id} 
+                                                            onClick={() => {
+                                                                setSelectedProductForAdd(prod);
+                                                                // Set default variant size & color if available
+                                                                const sizeVar = prod.variants?.find(v => v.name === 'Size');
+                                                                setSelectedVariantSize(sizeVar?.values?.[0] || '');
+                                                                setSelectedVariantColor(prod.colorConfigs?.[0]?.name || '');
+                                                                setSelectedItemQuantity(1);
+                                                            }}
+                                                            className={`p-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-all ${selectedProductForAdd?.id === prod.id ? 'bg-[#944555]/5 dark:bg-[#944555]/10' : ''}`}
+                                                        >
+                                                            <div className="flex items-center gap-3 min-w-0">
+                                                                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200/50 dark:border-slate-700/50 text-xs">
+                                                                    {prod.images?.[0] ? <img src={prod.images[0]} alt="" className="w-full h-full object-cover" /> : '📦'}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <p className="text-xs font-black text-slate-800 dark:text-white truncate">{prod.name}</p>
+                                                                    <p className="text-[10px] font-bold text-[#944555]">₹{prod.price}</p>
+                                                                </div>
+                                                            </div>
+                                                            <Plus className="w-4 h-4 text-slate-400 shrink-0" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Configurer for Selected Product */}
+                                            {selectedProductForAdd && (
+                                                <div className="bg-white dark:bg-[#1a1c23] p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-4 animate-slide-down">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="min-w-0">
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selected Item</p>
+                                                            <p className="text-sm font-black text-slate-900 dark:text-white truncate">{selectedProductForAdd.name}</p>
+                                                            <p className="text-xs font-black text-[#944555] mt-0.5">₹{selectedProductForAdd.price}</p>
+                                                        </div>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => setSelectedProductForAdd(null)}
+                                                            className="text-xs font-bold text-slate-405 hover:text-red-500 uppercase tracking-wider"
+                                                        >
+                                                            Clear
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {/* Color Configurations */}
+                                                        {selectedProductForAdd.colorConfigs?.length > 0 && (
+                                                            <div>
+                                                                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-0.5">Color</label>
+                                                                <select 
+                                                                    value={selectedVariantColor}
+                                                                    onChange={(e) => setSelectedVariantColor(e.target.value)}
+                                                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555]"
+                                                                >
+                                                                    <option value="">Select Color</option>
+                                                                    {selectedProductForAdd.colorConfigs.map((col, idx) => (
+                                                                        <option key={idx} value={col.name}>{col.name}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Size Configuration */}
+                                                        {selectedProductForAdd.variants?.find(v => v.name === 'Size')?.values?.length > 0 && (
+                                                            <div>
+                                                                <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-0.5">Size</label>
+                                                                <select 
+                                                                    value={selectedVariantSize}
+                                                                    onChange={(e) => setSelectedVariantSize(e.target.value)}
+                                                                    className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555]"
+                                                                >
+                                                                    <option value="">Select Size</option>
+                                                                    {selectedProductForAdd.variants.find(v => v.name === 'Size').values.map((sz, idx) => (
+                                                                        <option key={idx} value={sz}>{sz}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-3 pt-1">
+                                                        <div className="w-1/3">
+                                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 ml-0.5">Quantity</label>
+                                                            <input 
+                                                                type="number"
+                                                                min="1"
+                                                                value={selectedItemQuantity}
+                                                                onChange={(e) => setSelectedItemQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                                                                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555]"
+                                                            />
+                                                        </div>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={handleAddProductToOrder}
+                                                            className="flex-1 mt-4 py-2 bg-[#944555] hover:bg-[#7d3a47] text-white rounded-lg font-black text-[10px] uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 h-[34px] self-end"
+                                                        >
+                                                            <Plus className="w-3.5 h-3.5" /> Add to List
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Added Items Cart */}
+                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                            <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                <span>Items Selected ({newOrderItems.reduce((acc, it) => acc + it.quantity, 0)})</span>
+                                                <span className="text-[10px] font-black text-[#944555] uppercase">Subtotal: ₹{newOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)}</span>
+                                            </h4>
+
+                                            {newOrderItems.length === 0 ? (
+                                                <div className="py-8 text-center text-xs text-slate-400 font-bold uppercase tracking-wider">
+                                                    No products added to order yet.
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3 max-h-48 overflow-y-auto pr-1">
+                                                    {newOrderItems.map((item, idx) => (
+                                                        <div key={idx} className="flex items-center gap-3 bg-white dark:bg-[#16171e] p-3 rounded-xl border border-slate-150 dark:border-slate-800/80 group/cart-item relative">
+                                                            <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200/50 dark:border-slate-700/50 text-lg">
+                                                                {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : '👗'}
+                                                            </div>
+                                                            <div className="flex-1 min-w-0 pr-6">
+                                                                <p className="text-xs font-black text-slate-800 dark:text-white truncate">{item.title}</p>
+                                                                <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                                                                    {item.color && `Color: ${item.color}`} {item.size && ` • Size: ${item.size}`}
+                                                                </p>
+                                                                <p className="text-[10px] text-[#944555] font-black mt-0.5">
+                                                                    {item.quantity} × ₹{item.price}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right flex items-center gap-2">
+                                                                <span className="text-xs font-black text-slate-800 dark:text-white">₹{item.price * item.quantity}</span>
+                                                                <button 
+                                                                    type="button" 
+                                                                    onClick={() => setNewOrderItems(newOrderItems.filter((_, i) => i !== idx))}
+                                                                    className="p-1 text-slate-405 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-all ml-1"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Pricing Breakdown Calculations */}
+                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                            <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                <RefreshCw className="w-3.5 h-3.5 text-[#944555]" /> Pricing & Calculations
+                                            </h4>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Discount Amount (₹)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        min="0"
+                                                        value={newOrderDiscount} 
+                                                        onChange={(e) => setNewOrderDiscount(Math.max(0, parseFloat(e.target.value) || 0))} 
+                                                        placeholder="0" 
+                                                        className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Shipping Fee (₹)</label>
+                                                    <input 
+                                                        type="number" 
+                                                        min="0"
+                                                        value={newOrderShippingCost} 
+                                                        onChange={(e) => setNewOrderShippingCost(Math.max(0, parseFloat(e.target.value) || 0))} 
+                                                        placeholder="0" 
+                                                        className="w-full bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-white outline-none focus:border-[#944555] transition-all"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2 text-xs font-bold">
+                                                <div className="flex justify-between">
+                                                    <span className="text-slate-405">Cart Subtotal</span>
+                                                    <span className="text-slate-700 dark:text-slate-300">₹{newOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}</span>
+                                                </div>
+                                                {newOrderDiscount > 0 && (
+                                                    <div className="flex justify-between text-red-500">
+                                                        <span>Discount Applied</span>
+                                                        <span>- ₹{newOrderDiscount.toLocaleString()}</span>
+                                                    </div>
+                                                )}
+                                                {newOrderShippingCost > 0 && (
+                                                    <div className="flex justify-between text-slate-700 dark:text-slate-300">
+                                                        <span>Shipping Cost</span>
+                                                        <span>+ ₹{newOrderShippingCost.toLocaleString()}</span>
+                                                    </div>
+                                                )}
+                                                <div className="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800 text-sm">
+                                                    <span className="text-slate-900 dark:text-white font-black uppercase tracking-tight">Computed Total</span>
+                                                    <span className="text-xl font-black text-[#944555]">
+                                                        ₹{Math.max(0, newOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0) + Number(newOrderShippingCost) - Number(newOrderDiscount)).toLocaleString()}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Modal Actions */}
+                                <div className="pt-6 border-t border-slate-100 dark:border-slate-800/80 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-[#1a1c23] z-10 py-4">
+                                    <button 
+                                        type="button"
+                                        onClick={() => setIsCreateModalOpen(false)}
+                                        disabled={createLoading}
+                                        className="px-6 py-3 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="submit"
+                                        disabled={createLoading}
+                                        className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/20 transition-all disabled:opacity-75 flex items-center gap-2"
+                                    >
+                                        {createLoading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <span>Creating...</span>
+                                            </>
+                                        ) : (
+                                            <span>Create Order</span>
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

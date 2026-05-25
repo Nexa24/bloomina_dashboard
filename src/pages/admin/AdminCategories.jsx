@@ -283,7 +283,7 @@ const AdminCategories = () => {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={async () => {
-                            const standardList = ['Bras', 'Panties', 'Luxe', 'Nightwear', 'Bestsellers', 'Combo Packs', 'Innerwear'];
+                            const standardList = ['Bras', 'Panties', 'Sale%', 'Bras on Sale', 'Panties on Sale', 'Combo Pack Offers', 'Clearance', 'Nightwear', 'Bestsellers', 'Combo Packs', 'Innerwear'];
                             setLoading(true);
                             try {
                                 const newCats = standardList

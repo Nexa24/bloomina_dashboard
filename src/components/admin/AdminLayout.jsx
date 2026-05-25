@@ -4,7 +4,8 @@ import {
     LayoutDashboard, Users, ShoppingBag, Settings, LogOut, Package, Menu, X, Bell, 
     BarChart2, MessageSquare, Headphones, Search, Mail, ChevronDown, CheckCircle2, 
     ChevronUp, Sun, Moon, Archive, Ticket, DollarSign, TrendingUp, Megaphone, 
-    Palette, Code, Boxes, Gift, Heart, Image as ImageIcon, Scale, CreditCard, AlertTriangle 
+    Palette, Code, Boxes, Gift, Heart, Image as ImageIcon, Scale, CreditCard, AlertTriangle,
+    Ruler, BookOpen
 } from 'lucide-react';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
@@ -206,6 +207,7 @@ const AdminLayout = () => {
                 { path: '/admin/categories', label: 'Categories', icon: Archive },
                 { path: '/admin/inventory', label: 'Inventory', icon: Boxes },
                 { path: '/admin/materials', label: 'Material Templates', icon: Palette },
+                { path: '/admin/size-guides', label: 'Size Guides', icon: Ruler },
             ]
         },
         {
@@ -224,6 +226,12 @@ const AdminLayout = () => {
                 { path: '/admin/brand-reviews', label: 'Brand Reviews', icon: MessageSquare },
                 { path: '/admin/system', label: 'System Health', icon: Headphones },
                 { path: '/admin/settings', label: 'Global Settings', icon: Settings },
+            ]
+        },
+        {
+            title: "Support & Learning",
+            links: [
+                { path: '/admin/help', label: 'Help / Journal', icon: BookOpen },
             ]
         }
     ];

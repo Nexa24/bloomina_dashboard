@@ -99,7 +99,18 @@ export const AdminAuthProvider = ({ children }) => {
                 .eq('id', user.id)
                 .single();
 
-            if (!profileError && profile?.role === 'admin') {
+            if (profileError) {
+                console.error('[AdminAuth] Profile query failed:', profileError);
+                // If we already have a validated admin user, do NOT kick them out on query/network failure.
+                if (adminUser) {
+                    console.log('[AdminAuth] Retaining existing admin session despite profile query error.');
+                    _adminVerifyLock = false;
+                    return;
+                }
+                throw profileError;
+            }
+
+            if (profile?.role === 'admin') {
                 // Check DB for a valid 2FA session
                 let is2FAVerified = false;
                 try {
@@ -116,6 +127,10 @@ export const AdminAuthProvider = ({ children }) => {
                     console.log('[AdminAuth] 2FA Verified Status:', is2FAVerified);
                 } catch (err) {
                     console.warn('[AdminAuth] 2FA check error:', err.message);
+                    // If RPC fails (e.g. connection glitch) and we already have a session, assume verified to prevent kickout
+                    if (adminUser) {
+                        is2FAVerified = true;
+                    }
                 }
 
                 if (profile.two_factor_enabled && !is2FAVerified) {
@@ -169,7 +184,11 @@ export const AdminAuthProvider = ({ children }) => {
             }
         } catch (err) {
             console.error('[AdminAuth] Role verification error:', err);
-            setAdminUser(null);
+            // Only set adminUser to null if we don't already have one set.
+            // If the user was already authenticated, keep the session active to survive network hiccups.
+            if (!adminUser) {
+                setAdminUser(null);
+            }
         } finally {
             setLoading(false);
             _adminVerifyLock = false;

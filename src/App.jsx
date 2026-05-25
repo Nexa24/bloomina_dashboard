@@ -23,10 +23,12 @@ import AdminMarketing from './pages/admin/AdminMarketing';
 import AdminCoupons from './pages/admin/AdminCoupons';
 import AdminSystem from './pages/admin/AdminSystem';
 import AdminSettings from './pages/admin/AdminSettings';
+import AdminSizeGuides from './pages/admin/AdminSizeGuides';
 
 import AdminBrandReviews from './pages/admin/AdminBrandReviews';
 import AdminHero from './pages/admin/AdminHero';
 import AdminLeads from './pages/admin/AdminLeads';
+import AdminHelp from './pages/admin/AdminHelp';
 
 import { AlertProvider } from './contexts/AlertContext';
 
@@ -64,6 +66,7 @@ function App() {
                 <Route path="categories" element={<AdminCategories />} />
                 <Route path="inventory" element={<AdminInventory />} />
                 <Route path="materials" element={<AdminMaterials />} />
+                <Route path="size-guides" element={<AdminSizeGuides />} />
 
                 {/* Finance & Analytics */}
                 <Route path="finance" element={<AdminFinance />} />
@@ -76,6 +79,7 @@ function App() {
                 <Route path="hero" element={<AdminHero />} />
                 <Route path="brand-reviews" element={<AdminBrandReviews />} />
                 <Route path="inquiries" element={<AdminLeads />} />
+                <Route path="help" element={<AdminHelp />} />
 
                 <Route path="coupons" element={<AdminCoupons />} />
 

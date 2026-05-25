@@ -162,13 +162,74 @@ const AdminProducts = () => {
 
     // Category Hierarchy Map
     const categoryMap = {
-        'Bras': ['Wireless Bras', 'Padded & Push-Up', 'Lace Bras', 'Bralettes', 'Everyday Comfort', 'Nursing Bras'],
-        'Panties': ['Seamless Panties', 'High-Waist Panties', 'Bikini Panties', 'Thongs', 'Hipsters', 'Period Panties'],
-        'Luxe': ['Bridal Sets', 'Silk & Satin Robes', 'Nightwear', 'Gift Sets', 'Premium Lace'],
-        'Nightwear': ['Babydolls', 'Pajama Sets', 'Nighties', 'Sleep Shirts'],
-        'Bestsellers': ['New Arrivals', 'Trending Now', 'Staff Picks'],
-        'Combo Packs': ['Bra & Panty Sets', 'Multi-Pack Panties', 'Value Packs'],
-        'Innerwear': ['Camisoles', 'Shapewear', 'Slips']
+        'Bras': ['Wireless Bras', 'Padded & Push-Up', 'Lace Bras', 'Bralettes', 'Nursing Bras'],
+        'Panties': ['Seamless Panties', 'High-Waist Panties', 'Bikini Panties', 'Thongs', 'Period Panties'],
+        'Sale%': ['Bras on Sale', 'Panties on Sale', 'Combo Pack Offers', 'Clearance'],
+        'Nightwear': ['Babydolls', 'Pajama Sets', 'Nighties'],
+        'Bestsellers': [],
+        'Combo Packs': [],
+        'Innerwear': ['Camisoles', 'Shapewear']
+    };
+    // Category Normalization and Sale Synchronization
+    const normalizeAndSyncCategories = (categoriesList, isSale) => {
+        let clean = Array.isArray(categoriesList) 
+            ? categoriesList.filter(c => typeof c === 'string').map(c => c.trim())
+            : [];
+
+        const normalized = new Set();
+        
+        let hasBra = false;
+        let hasPanty = false;
+        let hasCombo = false;
+        let hasClearance = false;
+
+        clean.forEach(cat => {
+            const low = cat.toLowerCase();
+            if (low === 'bras' || low === 'bra' || low === 'bras on sale' || low === 'wireless bras' || low === 'padded & push-up' || low === 'lace bras' || low === 'bralettes' || low === 'everyday comfort' || low === 'nursing bras') {
+                hasBra = true;
+                normalized.add(cat);
+            } else if (low === 'panties' || low === 'panty' || low === 'panties on sale' || low === 'seamless panties' || low === 'high-waist panties' || low === 'bikini panties' || low === 'thongs' || low === 'hipsters' || low === 'period panties') {
+                hasPanty = true;
+                normalized.add(cat);
+            } else if (low === 'combo packs' || low === 'combo pack' || low === 'combo' || low === 'combos' || low === 'combo pack offers' || low === 'bra & panty sets' || low === 'multi-pack panties' || low === 'value packs') {
+                hasCombo = true;
+                normalized.add(cat);
+            } else if (low === 'clearance' || low === 'clearance sale') {
+                hasClearance = true;
+                normalized.add(cat);
+            } else {
+                normalized.add(cat);
+            }
+        });
+
+        if (hasBra && !Array.from(normalized).some(c => c.toLowerCase() === 'bras')) normalized.add('Bras');
+        if (hasPanty && !Array.from(normalized).some(c => c.toLowerCase() === 'panties')) normalized.add('Panties');
+        if (hasCombo && !Array.from(normalized).some(c => c.toLowerCase() === 'combo packs')) normalized.add('Combo Packs');
+
+        let result = Array.from(normalized);
+
+        if (isSale) {
+            if (!result.includes('Sale%')) {
+                result.push('Sale%');
+            }
+            if (hasBra && !result.includes('Bras on Sale')) {
+                result.push('Bras on Sale');
+            }
+            if (hasPanty && !result.includes('Panties on Sale')) {
+                result.push('Panties on Sale');
+            }
+            if (hasCombo && !result.includes('Combo Pack Offers')) {
+                result.push('Combo Pack Offers');
+            }
+            if (hasClearance && !result.includes('Clearance')) {
+                result.push('Clearance');
+            }
+        } else {
+            const saleSubcats = ['Bras on Sale', 'Panties on Sale', 'Combo Pack Offers', 'Clearance'];
+            result = result.filter(c => c !== 'Sale%' && !saleSubcats.includes(c));
+        }
+
+        return result;
     };
 
     const fetchProducts = async (page = 1) => {
@@ -186,11 +247,29 @@ const AdminProducts = () => {
                 query = query.eq('status', statusFilter);
             }
             if (categoryFilter !== 'All') {
-                const filters = [categoryFilter];
-                if (subCategoryFilter !== 'All') {
-                    filters.push(subCategoryFilter);
+                if (categoryFilter === 'Sale%') {
+                    if (subCategoryFilter !== 'All') {
+                        let mainCatForSaleSub = 'None';
+                        if (subCategoryFilter === 'Bras on Sale') mainCatForSaleSub = 'Bras';
+                        else if (subCategoryFilter === 'Panties on Sale') mainCatForSaleSub = 'Panties';
+                        else if (subCategoryFilter === 'Combo Pack Offers') mainCatForSaleSub = 'Combo Packs';
+                        else if (subCategoryFilter === 'Clearance') mainCatForSaleSub = 'Clearance';
+
+                        if (mainCatForSaleSub !== 'None') {
+                            query = query.or(`categories.cs.["${subCategoryFilter}"],and(is_sale.eq.true,categories.cs.["${mainCatForSaleSub}"])`);
+                        } else {
+                            query = query.or(`categories.cs.["${subCategoryFilter}"],is_sale.eq.true`);
+                        }
+                    } else {
+                        query = query.or('categories.cs.["Sale%"],is_sale.eq.true');
+                    }
+                } else {
+                    const filters = [categoryFilter];
+                    if (subCategoryFilter !== 'All') {
+                        filters.push(subCategoryFilter);
+                    }
+                    query = query.contains('categories', filters);
                 }
-                query = query.contains('categories', filters);
             }
 
             // Apply Sorting
@@ -287,7 +366,7 @@ const AdminProducts = () => {
             specifications: product.specifications || [],
             images: product.images || [],
             categories: product.categories || (product.category ? [product.category] : []),
-            isSale: product.is_sale || false,
+            isSale: product.is_sale || (Array.isArray(product.categories) && product.categories.includes('Sale%')) || false,
             material_id: product.material_id || null,
             size_guide_id: product.size_guide_id || null
         });
@@ -583,10 +662,7 @@ const AdminProducts = () => {
         setIsSubmitting(true);
         setLoading(true); // Keep general loading active too
 
-        // Ensure categories is an array of strings
-        const cleanCategories = Array.isArray(formData.categories) 
-            ? formData.categories.filter(c => typeof c === 'string')
-            : [];
+        let cleanCategories = normalizeAndSyncCategories(formData.categories, formData.isSale);
 
         // Ensure IDs are valid UUIDs or null
         const isValidUUID = (id) => id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
@@ -715,6 +791,10 @@ const AdminProducts = () => {
                         rowData[header] = row[index];
                     });
 
+                    const isSale = rowData.is_sale?.toLowerCase() === 'true';
+                    let rawCategories = rowData.categories ? rowData.categories.split(',').map(c => c.trim()) : [];
+                    let importedCategories = normalizeAndSyncCategories(rawCategories, isSale);
+
                     const payload = {
                         name: rowData.name || "Unnamed Product",
                         description: rowData.description || "",
@@ -724,9 +804,9 @@ const AdminProducts = () => {
                         sku: rowData.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
                         barcode: rowData.barcode || "",
                         stock: parseInt(rowData.stock) || 0,
-                        categories: rowData.categories ? rowData.categories.split(',').map(c => c.trim()) : [],
+                        categories: importedCategories,
                         status: rowData.status || "Draft",
-                        is_sale: rowData.is_sale?.toLowerCase() === 'true',
+                        is_sale: isSale,
                         images: rowData.images ? rowData.images.split(',').map(i => i.trim()) : [],
                         specifications: rowData.specifications ? JSON.parse(rowData.specifications) : [],
                         variants: rowData.variants ? JSON.parse(rowData.variants) : [],
@@ -1192,13 +1272,16 @@ const AdminProducts = () => {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {selectedGuide.chart_data?.slice(0, 3).map((row, ridx) => (
-                                                                <tr key={ridx} className="border-b border-slate-100 dark:border-slate-800/50">
-                                                                    {Object.values(row).map((val, vidx) => (
-                                                                        <td key={vidx} className="py-2 px-1 text-slate-700 dark:text-slate-300 font-bold">{val}</td>
-                                                                    ))}
-                                                                </tr>
-                                                            ))}
+                                                            {(() => {
+                                                                const headers = selectedGuide.chart_data?.[0] ? Object.keys(selectedGuide.chart_data[0]) : [];
+                                                                return selectedGuide.chart_data?.slice(0, 3).map((row, ridx) => (
+                                                                    <tr key={ridx} className="border-b border-slate-100 dark:border-slate-800/50">
+                                                                        {headers.map((key, vidx) => (
+                                                                            <td key={vidx} className="py-2 px-1 text-slate-700 dark:text-slate-300 font-bold">{row[key]}</td>
+                                                                        ))}
+                                                                    </tr>
+                                                                ));
+                                                            })()}
                                                         </tbody>
                                                     </table>
                                                     {selectedGuide.chart_data?.length > 3 && (
