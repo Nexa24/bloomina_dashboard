@@ -100,7 +100,7 @@ const AdminLeads = () => {
         <div className="space-y-6 animate-fade-in relative pb-12">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Contact Inquiries</h1>
+                    <h1 data-tour="leads-header" className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Contact Inquiries</h1>
                     <div className="flex items-center gap-2 mt-1">
                         <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Manage customer leads and feedback</p>
                         <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
@@ -110,6 +110,7 @@ const AdminLeads = () => {
                     </div>
                 </div>
                 <button 
+                    data-tour="refresh-leads-btn"
                     onClick={fetchLeads}
                     disabled={isLoading}
                     className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:border-[#944555] text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm hover:shadow-md disabled:opacity-50 active:scale-95 group"
@@ -120,7 +121,7 @@ const AdminLeads = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div data-tour="leads-stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                     { title: 'Total Inquiries', value: stats.total, icon: MessageSquare, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-500/10' },
                     { title: 'New Leads', value: stats.new, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-100 dark:bg-amber-500/10' },
@@ -139,11 +140,12 @@ const AdminLeads = () => {
             </div>
 
             {/* Leads Table Container */}
-            <div className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden min-h-[400px]">
+            <div data-tour="leads-table-container" className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden min-h-[400px]">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
                     <div className="relative flex-1 max-w-md w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
+                            data-tour="leads-search-input"
                             type="text"
                             placeholder="Search name, email, or message..."
                             value={searchQuery}
@@ -151,7 +153,7 @@ const AdminLeads = () => {
                             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#0f111a] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:border-[#944555] dark:focus:border-[#944555] text-slate-900 dark:text-white transition-colors shadow-inner"
                         />
                     </div>
-                    <div className="flex gap-2">
+                    <div data-tour="leads-status-filters" className="flex gap-2">
                         {['all', 'new', 'responded', 'archived'].map(f => (
                             <button 
                                 key={f}
@@ -165,7 +167,7 @@ const AdminLeads = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table data-tour="leads-table" className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50 dark:bg-[#0f111a]/50 text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
                                 <th className="p-4">Customer Info</th>

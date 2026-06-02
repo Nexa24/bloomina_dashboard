@@ -510,7 +510,7 @@ const AdminOrders = () => {
 
             {/* Dashboard Content (Visible on Screen) */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
+                <div data-tour="orders-header">
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Order Management</h1>
                     <div className="flex items-center gap-2 mt-1">
                         <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Fulfill orders and monitor real-time sales</p>
@@ -522,6 +522,7 @@ const AdminOrders = () => {
                 </div>
                 <div className="flex gap-2">
                     <button 
+                        data-tour="create-order-btn"
                         onClick={() => setIsCreateModalOpen(true)}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-emerald-600/20 active:scale-95"
                     >
@@ -529,6 +530,7 @@ const AdminOrders = () => {
                         <span>Create Order</span>
                     </button>
                     <button 
+                        data-tour="refresh-orders-btn"
                         onClick={fetchOrders} 
                         disabled={isLoading}
                         className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:border-[#944555] text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm hover:shadow-md disabled:opacity-50 active:scale-95 group"
@@ -536,7 +538,7 @@ const AdminOrders = () => {
                         <RefreshCw className={`w-4 h-4 text-[#944555] ${isLoading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
                         <span>Refresh Board</span>
                     </button>
-                    <button onClick={handleExportSales} className="bg-[#944555] hover:bg-[#7d3a47] text-white px-6 py-2.5 rounded-xl font-black text-sm transition-all shadow-lg shadow-[#944555]/20 flex items-center gap-2">
+                    <button data-tour="export-sales-btn" onClick={handleExportSales} className="bg-[#944555] hover:bg-[#7d3a47] text-white px-6 py-2.5 rounded-xl font-black text-sm transition-all shadow-lg shadow-[#944555]/20 flex items-center gap-2">
                         <Download className="w-4 h-4" /> Export Data
                     </button>
                 </div>
@@ -544,7 +546,7 @@ const AdminOrders = () => {
 
             <div className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
-                    <div className="relative flex-1 max-w-md w-full">
+                    <div data-tour="orders-search-input" className="relative flex-1 max-w-md w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
@@ -603,7 +605,7 @@ const AdminOrders = () => {
                     </div>
                 )}
 
-                <div className="overflow-x-auto">
+                <div data-tour="orders-table" className="overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
                             <tr className="bg-slate-50/50 dark:bg-[#0f111a]/50 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
@@ -672,7 +674,7 @@ const AdminOrders = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a1c23]">
+                <div data-tour="orders-pagination" className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a1c23]">
                     <div className="font-bold">Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredOrders.length)} of {filteredOrders.length}</div>
                     <div className="flex gap-1">
                         <button 
@@ -954,7 +956,7 @@ const AdminOrders = () => {
                             if (!createLoading) setIsCreateModalOpen(false);
                         }}
                     ></div>
-                    <div className="relative bg-white dark:bg-[#1a1c23] rounded-3xl w-full max-w-4xl shadow-2xl border border-slate-100 dark:border-slate-800/80 animate-scale-in flex flex-col my-8 max-h-[90vh] overflow-hidden">
+                    <div data-tour="order-modal" className="relative bg-white dark:bg-[#1a1c23] rounded-3xl w-full max-w-4xl shadow-2xl border border-slate-100 dark:border-slate-800/80 animate-scale-in flex flex-col my-8 max-h-[90vh] overflow-hidden">
                         {/* Header */}
                         <div className="p-6 border-b border-slate-100 dark:border-slate-800/50 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/20 sticky top-0 z-10 backdrop-blur-md rounded-t-3xl">
                             <div>
@@ -977,7 +979,7 @@ const AdminOrders = () => {
                                     {/* Left Column: Customer & Shipping Details */}
                                     <div className="space-y-6">
                                         {/* Customer Form */}
-                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                        <div data-tour="order-customer-card" className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
                                             <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                                                 <Phone className="w-3.5 h-3.5 text-[#944555]" /> Customer Information
                                             </h4>
@@ -1019,7 +1021,7 @@ const AdminOrders = () => {
                                         </div>
 
                                         {/* Shipping Address Form */}
-                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                        <div data-tour="order-shipping-card" className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
                                             <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                                                 <MapPin className="w-3.5 h-3.5 text-[#944555]" /> Shipping Address
                                             </h4>
@@ -1082,7 +1084,7 @@ const AdminOrders = () => {
                                         </div>
 
                                         {/* Payment and Status Options */}
-                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                        <div data-tour="order-logistics-card" className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
                                             <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                                                 <Wallet className="w-3.5 h-3.5 text-[#944555]" /> Logistics & Status
                                             </h4>
@@ -1123,7 +1125,7 @@ const AdminOrders = () => {
                                     {/* Right Column: Products Selection & Pricing */}
                                     <div className="space-y-6">
                                         {/* Products Add Section */}
-                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                        <div data-tour="order-add-items-card" className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
                                             <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                                                 <ShoppingBag className="w-3.5 h-3.5 text-[#944555]" /> Add Items to Order
                                             </h4>
@@ -1254,7 +1256,7 @@ const AdminOrders = () => {
                                         </div>
 
                                         {/* Added Items Cart */}
-                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                        <div data-tour="order-cart-card" className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
                                             <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
                                                 <span>Items Selected ({newOrderItems.reduce((acc, it) => acc + it.quantity, 0)})</span>
                                                 <span className="text-[10px] font-black text-[#944555] uppercase">Subtotal: ₹{newOrderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)}</span>
@@ -1297,7 +1299,7 @@ const AdminOrders = () => {
                                         </div>
 
                                         {/* Pricing Breakdown Calculations */}
-                                        <div className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+                                        <div data-tour="order-pricing-card" className="bg-slate-50/50 dark:bg-[#15171e]/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
                                             <h4 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                                                 <RefreshCw className="w-3.5 h-3.5 text-[#944555]" /> Pricing & Calculations
                                             </h4>
@@ -1366,6 +1368,7 @@ const AdminOrders = () => {
                                         Cancel
                                     </button>
                                     <button 
+                                        data-tour="order-submit-btn"
                                         type="submit"
                                         disabled={createLoading}
                                         className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/20 transition-all disabled:opacity-75 flex items-center gap-2"

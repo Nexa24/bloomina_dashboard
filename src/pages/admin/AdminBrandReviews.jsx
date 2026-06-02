@@ -88,7 +88,7 @@ const AdminBrandReviews = () => {
 
     return (
         <div className="flex flex-col h-full animate-fade-in-up">
-            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
+            <div data-tour="reviews-header" className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                 <div>
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Community Feedback</h1>
                     <p className="text-slate-500 text-sm font-medium">Moderate and manage reviews for products and the Bloomina brand.</p>
@@ -96,6 +96,7 @@ const AdminBrandReviews = () => {
                 <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
                     <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0 hide-scrollbar flex-1 md:flex-none">
                         <button
+                            data-tour="refresh-reviews-btn"
                             onClick={fetchReviews}
                             disabled={loading}
                             className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50 shrink-0"
@@ -104,7 +105,7 @@ const AdminBrandReviews = () => {
                         </button>
                         
                         {/* Type Filter */}
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
+                        <div data-tour="reviews-type-filter" className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
                             {['all', 'product', 'brand'].map((t) => (
                                 <button
                                     key={t}
@@ -119,7 +120,7 @@ const AdminBrandReviews = () => {
                         <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 shrink-0 hidden md:block" />
                     </div>
 
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
+                    <div data-tour="reviews-status-filter" className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 hide-scrollbar">
                         {['all', 'pending', 'approved', 'rejected'].map((f) => (
                             <button
                                 key={f}
@@ -134,7 +135,7 @@ const AdminBrandReviews = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div data-tour="reviews-stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white dark:bg-[#15171e] p-6 rounded-[28px] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between group">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Customer Sentiment</p>
@@ -183,7 +184,7 @@ const AdminBrandReviews = () => {
                     <p className="text-slate-500">No feedback matches your current selection. Maybe try a different filter?</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div data-tour="reviews-grid" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredReviews.map((review) => (
                         <div key={review.id} className="relative bg-white dark:bg-[#15171e] rounded-[32px] p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col hover:border-[#944555]/30 transition-all group hover:shadow-xl hover:shadow-[#944555]/5">
                             

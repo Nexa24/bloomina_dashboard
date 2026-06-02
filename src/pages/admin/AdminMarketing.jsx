@@ -141,12 +141,13 @@ const AdminMarketing = () => {
 
     return (
         <div className="space-y-6 animate-fade-in relative pb-20">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div data-tour="marketing-header" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Marketing & Growth</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Launch and track promotional campaigns</p>
                 </div>
                 <button 
+                    data-tour="create-campaign-btn"
                     onClick={() => setIsAdding(true)}
                     className="bg-[#944555] hover:bg-[#7d3a47] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-md shadow-[#944555]/20 flex items-center gap-2"
                 >
@@ -155,7 +156,7 @@ const AdminMarketing = () => {
             </div>
 
             {/* Campaign Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div data-tour="campaign-grid" className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {loading ? (
                     Array(3).fill(0).map((_, i) => (
                         <div key={i} className="h-48 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse"></div>

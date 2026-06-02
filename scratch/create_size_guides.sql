@@ -13,18 +13,21 @@ CREATE TABLE IF NOT EXISTS public.size_guides (
 DO $$ 
 BEGIN 
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='size_guide_id') THEN
-        ALTER TABLE public.products ADD COLUMN size_guide_id UUID REFERENCES public.size_guides(id);
+        ALTER TABLE public.products ADD COLUMN size_guide_id UUID REFERENCES public.size_guides(id) ON DELETE SET NULL;
+    ELSE
+        ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_size_guide_id_fkey;
+        ALTER TABLE public.products ADD CONSTRAINT products_size_guide_id_fkey FOREIGN KEY (size_guide_id) REFERENCES public.size_guides(id) ON DELETE SET NULL;
     END IF;
 END $$;
 
 -- Enable RLS
 ALTER TABLE public.size_guides ENABLE ROW LEVEL SECURITY;
 
--- Add Public Read Policy
+-- Add full operations access policy
 DO $$ 
 BEGIN 
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='size_guides' AND policyname='Allow public read size_guides') THEN
-        CREATE POLICY "Allow public read size_guides" ON public.size_guides FOR SELECT USING (true);
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='size_guides' AND policyname='Enable all operations for all users') THEN
+        CREATE POLICY "Enable all operations for all users" ON public.size_guides FOR ALL USING (true) WITH CHECK (true);
     END IF;
 END $$;
 

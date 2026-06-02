@@ -439,7 +439,7 @@ const AdminHelp = () => {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0f111a] px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] shadow-sm overflow-hidden">
+        <div data-tour="help-header" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] shadow-sm overflow-hidden">
           <div className="p-6 sm:p-8 lg:p-10 bg-gradient-to-r from-[#944555] via-[#b35e71] to-[#6f3a47] text-white">
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
               <div className="max-w-4xl space-y-4">
@@ -471,6 +471,7 @@ const AdminHelp = () => {
             <div className="relative max-w-xl">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
+                data-tour="help-search-input"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search anything in help journal..."
@@ -480,7 +481,7 @@ const AdminHelp = () => {
           </div>
         </div>
 
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] p-5 sm:p-6 shadow-sm">
+        <section data-tour="help-reference-cards" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] p-5 sm:p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-900 dark:text-white">Complete admin pages reference</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {filteredPages.map((page) => (
@@ -493,7 +494,7 @@ const AdminHelp = () => {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] p-5 sm:p-6 shadow-sm">
+        <section data-tour="help-demo-panel" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] p-5 sm:p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <WandSparkles className="w-5 h-5 text-[#944555]" />
             <h2 className="text-xl font-black text-slate-900 dark:text-white">Automated demonstration</h2>
@@ -575,7 +576,7 @@ const AdminHelp = () => {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] p-5 sm:p-6 shadow-sm">
+        <section data-tour="help-blueprints-container" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15171e] p-5 sm:p-6 shadow-sm">
           <h2 className="text-xl font-black text-slate-900 dark:text-white">Detailed operational blueprints</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-4">
             Expanded how-to checklists with exact field order and admin actions.

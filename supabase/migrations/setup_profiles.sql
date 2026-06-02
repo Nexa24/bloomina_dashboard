@@ -26,8 +26,21 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policies for Admins to view and manage everyone
+DROP POLICY IF EXISTS "Admins have full access to profiles" ON public.profiles;
+
 CREATE POLICY "Admins have full access to profiles" ON public.profiles
-  FOR ALL USING (true) WITH CHECK (true);
+  FOR ALL
+  USING (auth.jwt() -> 'user_metadata' ->> 'role' = 'admin')
+  WITH CHECK (auth.jwt() -> 'user_metadata' ->> 'role' = 'admin');
+
+CREATE POLICY "Users can read own profile" ON public.profiles
+  FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON public.profiles
+  FOR UPDATE
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
 
 -- Functions to automatically create a profile for new users
 CREATE OR REPLACE FUNCTION public.handle_new_user()

@@ -152,7 +152,7 @@ const AdminInventory = () => {
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
+                <div data-tour="inventory-header">
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Inventory Status</h1>
                     <div className="flex items-center gap-2 mt-1">
                         <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Live stock levels from your production database</p>
@@ -163,6 +163,7 @@ const AdminInventory = () => {
                     </div>
                 </div>
                 <button
+                    data-tour="refresh-stock-btn"
                     onClick={() => fetchInventory(currentPage)}
                     disabled={loading}
                     className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:border-[#944555] text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm hover:shadow-md disabled:opacity-50 active:scale-95 group"
@@ -173,7 +174,7 @@ const AdminInventory = () => {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div data-tour="inventory-stats" className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                     { title: 'Tracked Products', value: stats.total, icon: Boxes, color: 'text-blue-500', bg: 'bg-blue-100 dark:bg-blue-500/10', filterKey: 'all' },
                     { title: 'Low Stock', value: stats.low, icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-100 dark:bg-yellow-500/10', filterKey: 'low' },
@@ -196,9 +197,9 @@ const AdminInventory = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden">
+            <div data-tour="inventory-table" className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
-                    <div className="relative flex-1 max-w-md">
+                    <div data-tour="inventory-search-input" className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
@@ -208,7 +209,7 @@ const AdminInventory = () => {
                             className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-[#0f111a] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:border-[#944555] dark:focus:border-[#944555] text-slate-900 dark:text-white transition-colors"
                         />
                     </div>
-                    <div className="flex gap-2 text-xs font-bold">
+                    <div data-tour="inventory-filter-tabs" className="flex gap-2 text-xs font-bold">
                         {['all', 'low', 'out'].map(f => (
                             <button
                                 key={f}
@@ -340,7 +341,7 @@ const AdminInventory = () => {
                 
                 {/* Pagination */}
                 {totalCount > 0 && !loading && (
-                    <div className="p-4 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-[#1a1c23] gap-4">
+                    <div data-tour="inventory-pagination" className="p-4 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-[#1a1c23] gap-4">
                         <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
                             Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, totalCount)} of {totalCount} results
                         </div>

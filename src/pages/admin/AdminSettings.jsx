@@ -235,7 +235,7 @@ const AdminSettings = () => {
             {/* Standardized Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase flex items-center gap-3">
+                    <h1 data-tour="settings-header" className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase flex items-center gap-3">
                         <Settings className="w-7 h-7 text-[#944555]" />
                         Global Configuration
                     </h1>
@@ -249,6 +249,7 @@ const AdminSettings = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <button 
+                        data-tour="refresh-settings-btn"
                         onClick={fetchData}
                         disabled={loading}
                         className="p-2.5 rounded-xl bg-white dark:bg-[#15171e] border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-[#944555] transition-all shadow-sm active:scale-95 group disabled:opacity-50"
@@ -257,6 +258,7 @@ const AdminSettings = () => {
                         <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
                     </button>
                     <button 
+                        data-tour="save-settings-btn"
                         onClick={handleSave}
                         disabled={saving}
                         className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#944555] text-white font-black text-sm hover:bg-[#7d3a47] transition-all shadow-lg shadow-[#944555]/20 active:scale-95 disabled:opacity-50"
@@ -269,7 +271,7 @@ const AdminSettings = () => {
 
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Modern Sidebar Tabs */}
-                <div className="w-full lg:w-80 shrink-0 space-y-2">
+                <div data-tour="settings-tabs" className="w-full lg:w-80 shrink-0 space-y-2">
                     {tabs.map(tab => (
                         <button
                             key={tab.id}
@@ -292,7 +294,7 @@ const AdminSettings = () => {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 bg-white dark:bg-[#15171e] rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm p-8 lg:p-10 relative overflow-hidden">
+                <div data-tour="settings-content" className="flex-1 bg-white dark:bg-[#15171e] rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm p-8 lg:p-10 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#944555]/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
                     
                     {activeTab === 'general' && (

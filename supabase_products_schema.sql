@@ -25,9 +25,17 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
--- Create policies (You might want to adjust these based on your auth setup)
--- For a basic admin dashboard, we can allow anon access for now, but in production, you should restrict this to authenticated admins.
-CREATE POLICY "Enable all operations for all users" ON public.products FOR ALL USING (true) WITH CHECK (true);
+-- Create policies
+DROP POLICY IF EXISTS "Enable all operations for all users" ON public.products;
+
+CREATE POLICY "Allow public select" ON public.products 
+    FOR SELECT 
+    USING (true);
+
+CREATE POLICY "Allow admin manage" ON public.products 
+    FOR ALL 
+    USING (auth.jwt() -> 'user_metadata' ->> 'role' = 'admin')
+    WITH CHECK (auth.jwt() -> 'user_metadata' ->> 'role' = 'admin');
 
 -- Optional: Create a trigger to automatically update the updated_at column
 CREATE OR REPLACE FUNCTION update_modified_column()

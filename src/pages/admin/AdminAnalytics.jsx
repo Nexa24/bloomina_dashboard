@@ -252,16 +252,17 @@ const AdminAnalytics = () => {
         <div className="space-y-8 animate-fade-in pb-12">
 
             {/* Header section with Glassmorphism */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/40 dark:bg-[#1a1c23]/40 backdrop-blur-xl p-6 rounded-[32px] border border-white/60 dark:border-slate-800/60 shadow-sm">
+            <div data-tour="analytics-header" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/40 dark:bg-[#1a1c23]/40 backdrop-blur-xl p-6 rounded-[32px] border border-white/60 dark:border-slate-800/60 shadow-sm">
                 <div>
                     <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-slate-400 tracking-tight">Analytics Overview</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">Real-time metrics and deep insights</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                    <button onClick={handleResetDatabase} className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm">
+                    <button data-tour="reset-db-btn" onClick={handleResetDatabase} className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm">
                         <Trash2 className="w-4 h-4" /> Reset Database
                     </button>
                     <button
+                        data-tour="refresh-analytics-btn"
                         onClick={fetchAnalyticsData}
                         disabled={isLoading}
                         className="bg-white/50 dark:bg-[#12131a]/50 hover:bg-white/80 dark:hover:bg-[#12131a]/80 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md shadow-sm disabled:opacity-50"
@@ -269,7 +270,7 @@ const AdminAnalytics = () => {
                         <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
-                    <div className="flex items-center gap-3 bg-white/50 dark:bg-[#12131a]/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
+                    <div data-tour="analytics-range-selector" className="flex items-center gap-3 bg-white/50 dark:bg-[#12131a]/50 p-1.5 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md">
                         <div className="p-2 bg-white dark:bg-[#1a1c23] shadow-sm rounded-xl text-[#944555]"><Calendar className="w-4 h-4" /></div>
                         <select className="bg-transparent text-slate-700 dark:text-slate-300 pr-4 py-1 font-bold text-sm focus:outline-none cursor-pointer appearance-none">
                             <option>Last 7 Days</option>
@@ -281,7 +282,7 @@ const AdminAnalytics = () => {
             </div>
 
             {/* Ultra-Modern KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div data-tour="analytics-kpi-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { title: 'Total Revenue', value: '₹' + totalRevenue.toLocaleString('en-IN'), change: '+12.5%', isUp: true, icon: TrendingUp, color: 'from-[#944555] to-[#f472b6]' },
                     { title: 'Total Orders', value: orders.length, change: '+5.2%', isUp: true, icon: Activity, color: 'from-emerald-400 to-emerald-600' },
@@ -330,7 +331,7 @@ const AdminAnalytics = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 {/* 1. Revenue Trend */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
+                <div data-tour="revenue-trend-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#944555] to-[#f472b6] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="flex justify-between items-center mb-8">
                         <div>
@@ -353,7 +354,7 @@ const AdminAnalytics = () => {
                 </div>
 
                 {/* 2. Profit Trend */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
+                <div data-tour="profit-trend-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#10b981] to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="flex justify-between items-center mb-8">
                         <div>
@@ -376,7 +377,7 @@ const AdminAnalytics = () => {
                 </div>
 
                 {/* 3. Orders Trend */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
+                <div data-tour="orders-volume-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h3 className="text-xl font-black text-slate-900 dark:text-white">Orders Volume</h3>
@@ -397,7 +398,7 @@ const AdminAnalytics = () => {
                 </div>
 
                 {/* 4. Customer Growth (Stacked Area) */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
+                <div data-tour="customer-base-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col group relative overflow-hidden">
                     <div className="flex justify-between items-center mb-8">
                         <div>
                             <h3 className="text-xl font-black text-slate-900 dark:text-white">Customer Base</h3>
@@ -420,7 +421,7 @@ const AdminAnalytics = () => {
                 </div>
 
                 {/* 5. Top Products (Horizontal Bar) */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col">
+                <div data-tour="top-products-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col">
                     <h3 className="text-xl font-black text-slate-900 dark:text-white mb-8">Top Products <span className="text-sm text-slate-400 ml-2 font-bold">(Units Sold)</span></h3>
                     <div className="w-full flex-1 min-h-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -439,7 +440,7 @@ const AdminAnalytics = () => {
                 </div>
 
                 {/* 6. Conversion Funnel (Horizontal Bar) */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col">
+                <div data-tour="conversion-funnel-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col">
                     <h3 className="text-xl font-black text-slate-900 dark:text-white mb-8">Conversion Funnel <span className="text-sm text-slate-400 ml-2 font-bold">(Dropout Rate)</span></h3>
                     <div className="w-full flex-1 min-h-[250px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -460,7 +461,7 @@ const AdminAnalytics = () => {
 
 
                 {/* 8. Payment Methods (Pie) */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col items-center">
+                <div data-tour="payment-methods-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col items-center">
                     <h3 className="text-xl font-black text-slate-900 dark:text-white mb-8 w-full text-left">Payment Methods</h3>
                     <div className="w-full flex-1 min-h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -487,7 +488,7 @@ const AdminAnalytics = () => {
                 </div>
 
                 {/* 9. Return Rate */}
-                <div className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col relative overflow-hidden">
+                <div data-tour="return-rate-card" className="bg-white dark:bg-[#15171e] p-8 rounded-[32px] border border-slate-100/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col relative overflow-hidden">
                     <h3 className="text-xl font-black text-slate-900 dark:text-white mb-8">Return Rate <span className="text-sm text-slate-400 ml-2 font-bold">(%)</span></h3>
                     <div className="w-full flex-1 min-h-[250px]">
                         <ResponsiveContainer width="100%" height="100%">

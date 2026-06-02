@@ -181,13 +181,14 @@ const AdminMaterials = () => {
             )}
 
             <div className="max-w-7xl mx-auto space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div data-tour="materials-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Material Templates</h1>
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Define technical specs and stories for your fabric collections.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <button
+                            data-tour="refresh-materials-btn"
                             onClick={fetchMaterials}
                             disabled={loading}
                             className="flex items-center gap-2 bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50"
@@ -196,6 +197,7 @@ const AdminMaterials = () => {
                             Refresh
                         </button>
                         <button
+                            data-tour="create-material-btn"
                             onClick={() => openModal()}
                             className="flex items-center gap-2 bg-[#944555] hover:bg-[#7d3a47] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm shrink-0"
                         >
@@ -205,9 +207,9 @@ const AdminMaterials = () => {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+                <div data-tour="materials-table-card" className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-200px)]">
                     <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#1a1c23]">
-                        <div className="relative max-w-md w-full">
+                        <div data-tour="materials-search" className="relative max-w-md w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
                                 type="text"
@@ -230,7 +232,7 @@ const AdminMaterials = () => {
                                 <p>No material templates found.</p>
                             </div>
                         ) : (
-                            <table className="w-full text-left border-collapse">
+                            <table data-tour="materials-table" className="w-full text-left border-collapse">
                                 <thead className="bg-slate-50 dark:bg-[#15171e] sticky top-0 z-10">
                                     <tr>
                                         <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Template Name</th>

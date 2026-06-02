@@ -86,13 +86,14 @@ const AdminPayments = () => {
             )}
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div data-tour="payments-header" className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Payment Gateways</h2>
                     <p className="text-slate-500 dark:text-slate-400 font-medium">Configure secure checkout and transaction protocols.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
+                        data-tour="refresh-payments-btn"
                         onClick={fetchConfig}
                         disabled={loading}
                         className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
@@ -100,6 +101,7 @@ const AdminPayments = () => {
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
                     </button>
                     <button 
+                        data-tour="save-payments-btn"
                         onClick={handleSave}
                         disabled={saving}
                         className="inline-flex items-center gap-2 bg-[#944555] hover:bg-[#7d3a47] text-white px-8 py-3.5 rounded-2xl font-bold transition-all shadow-lg shadow-[#944555]/25 active:scale-95 disabled:opacity-50"
@@ -116,7 +118,7 @@ const AdminPayments = () => {
                 <div className="lg:col-span-2 space-y-8">
                     
                     {/* Razorpay Section */}
-                    <div className="bg-white dark:bg-[#1a1c23] rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm relative overflow-hidden group">
+                    <div data-tour="razorpay-config-card" className="bg-white dark:bg-[#1a1c23] rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
                             <Zap className="w-32 h-32 text-[#944555]" />
                         </div>
@@ -210,7 +212,7 @@ const AdminPayments = () => {
                     </div>
 
                     {/* Direct UPI / PhonePe Section */}
-                    <div className="bg-white dark:bg-[#1a1c23] rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+                    <div data-tour="upi-config-card" className="bg-white dark:bg-[#1a1c23] rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="w-12 h-12 bg-purple-50 dark:bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-600">
                                 <Smartphone className="w-6 h-6" />
@@ -251,7 +253,7 @@ const AdminPayments = () => {
                 <div className="space-y-6">
                     
                     {/* Status & Security Card */}
-                    <div className="bg-[#944555] rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-[#944555]/20">
+                    <div data-tour="security-badge-card" className="bg-[#944555] rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-[#944555]/20">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                         <div className="relative z-10">
                             <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
@@ -275,7 +277,7 @@ const AdminPayments = () => {
                     </div>
 
                     {/* Method Toggles */}
-                    <div className="bg-white dark:bg-[#1a1c23] rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
+                    <div data-tour="toggles-config-card" className="bg-white dark:bg-[#1a1c23] rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-8 shadow-sm">
                         <h4 className="text-lg font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                              Methods & Rules
                         </h4>

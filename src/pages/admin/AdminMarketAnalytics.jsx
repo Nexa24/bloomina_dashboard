@@ -129,16 +129,17 @@ const AdminMarketAnalytics = () => {
 
     return (
         <div className="space-y-6 animate-fade-in">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div data-tour="market-header" className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Market Intelligence</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Analyze demographic engagement and global reach based on real orders</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                    <button onClick={handleResetDatabase} className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm">
+                    <button data-tour="market-reset-btn" onClick={handleResetDatabase} className="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 border border-red-200 dark:border-red-900/30 px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm">
                         <Trash2 className="w-4 h-4" /> Reset Database
                     </button>
                     <button
+                        data-tour="market-refresh-btn"
                         onClick={fetchData}
                         disabled={loading}
                         className="bg-white/50 dark:bg-[#12131a]/50 hover:bg-white/80 dark:hover:bg-[#12131a]/80 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-md shadow-sm disabled:opacity-50"
@@ -155,7 +156,7 @@ const AdminMarketAnalytics = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-[#1a1c23] p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm md:col-span-2">
+                    <div data-tour="market-heatmap-card" className="bg-white dark:bg-[#1a1c23] p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm md:col-span-2">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Geographic Order Heatmap</h3>
                         <div className="w-full h-[400px] mt-4 overflow-hidden relative">
                             <ResponsiveContainer width="100%" height="100%">
@@ -183,7 +184,7 @@ const AdminMarketAnalytics = () => {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="bg-white dark:bg-[#1a1c23] p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm">
+                        <div data-tour="market-regions-card" className="bg-white dark:bg-[#1a1c23] p-6 rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm">
                             <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">Top Regions by Revenue</h3>
                             <div className="space-y-4">
                                 {regionData.slice(0, 5).map((loc, i) => (
@@ -201,7 +202,7 @@ const AdminMarketAnalytics = () => {
                             </div>
                         </div>
 
-                        <div className="bg-[#1a1c23] dark:bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-sm text-white relative overflow-hidden">
+                        <div data-tour="market-trending-card" className="bg-[#1a1c23] dark:bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-sm text-white relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-[#944555] rounded-full blur-[50px] opacity-20"></div>
                             <Target className="w-8 h-8 text-[#944555] mb-3 relative z-10" />
                             <h3 className="text-lg font-black tracking-tight mb-1 relative z-10">Trending Product</h3>

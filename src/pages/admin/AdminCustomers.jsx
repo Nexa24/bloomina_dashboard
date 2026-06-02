@@ -195,7 +195,7 @@ const AdminCustomers = () => {
     return (
         <div className="space-y-6 animate-fade-in relative pb-12">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
+                <div data-tour="customers-header">
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Customer Management</h1>
                     <div className="flex items-center gap-2 mt-1">
                         <p className="text-slate-500 dark:text-slate-400 text-sm">Monitor user activity and manage profiles</p>
@@ -206,6 +206,7 @@ const AdminCustomers = () => {
                     </div>
                 </div>
                 <button 
+                    data-tour="refresh-customers-btn"
                     onClick={fetchCustomers}
                     disabled={isLoading}
                     className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:border-[#944555] text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm hover:shadow-md disabled:opacity-50 active:scale-95 group"
@@ -216,7 +217,7 @@ const AdminCustomers = () => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div data-tour="customers-stats-grid" className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
                     { title: 'Total Customers', value: stats.total, icon: Users, color: 'text-purple-500', bg: 'bg-purple-100 dark:bg-purple-500/10' },
                     { title: 'Active (Standard)', value: stats.active, icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-100 dark:bg-emerald-500/10' },
@@ -235,9 +236,9 @@ const AdminCustomers = () => {
             </div>
 
             {/* Customer List Container */}
-            <div className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden min-h-[400px]">
+            <div data-tour="customers-table" className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden min-h-[400px]">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
-                    <div className="relative flex-1 max-w-md w-full">
+                    <div data-tour="customers-search-input" className="relative flex-1 max-w-md w-full">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                             type="text"
@@ -247,7 +248,7 @@ const AdminCustomers = () => {
                             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#0f111a] border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:border-[#944555] dark:focus:border-[#944555] text-slate-900 dark:text-white transition-colors shadow-inner"
                         />
                     </div>
-                    <div className="flex gap-2">
+                    <div data-tour="customers-status-filters" className="flex gap-2">
                         {['all', 'active', 'blocked'].map(f => (
                             <button 
                                 key={f}

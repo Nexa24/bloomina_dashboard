@@ -27,7 +27,18 @@ BEGIN
 END $$;
 
 -- Security Policies (Ensure proper permissions)
-CREATE POLICY "Enable insert for all users" ON public.orders FOR INSERT WITH CHECK (true);
-CREATE POLICY "Enable select for tracking" ON public.orders FOR SELECT USING (true);
-CREATE POLICY "Enable update for all" ON public.orders FOR UPDATE USING (true) WITH CHECK (true);
-CREATE POLICY "Enable delete for all" ON public.orders FOR DELETE USING (true);
+DROP POLICY IF EXISTS "Enable insert for all users" ON public.orders;
+DROP POLICY IF EXISTS "Enable select for tracking" ON public.orders;
+DROP POLICY IF EXISTS "Enable update for all" ON public.orders;
+DROP POLICY IF EXISTS "Enable delete for all" ON public.orders;
+
+-- 1. Admins have full access to manage all orders
+CREATE POLICY "Admins have full access on orders" ON public.orders
+    FOR ALL
+    USING (auth.jwt() -> 'user_metadata' ->> 'role' = 'admin')
+    WITH CHECK (auth.jwt() -> 'user_metadata' ->> 'role' = 'admin');
+
+-- 2. Logged-in users can view their own orders
+CREATE POLICY "Users can view own orders" ON public.orders
+    FOR SELECT
+    USING (auth.uid() = user_id);

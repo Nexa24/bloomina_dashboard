@@ -142,11 +142,12 @@ const AdminCoupons = () => {
         <div className="space-y-6 animate-fade-in relative">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Coupon Codes</h1>
+                    <h1 data-tour="coupons-header" className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Coupon Codes</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Create and manage discount codes for your customers</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
+                        data-tour="refresh-coupons-btn"
                         onClick={fetchCoupons}
                         disabled={loading}
                         className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
@@ -154,6 +155,7 @@ const AdminCoupons = () => {
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
                     </button>
                     <button 
+                        data-tour="create-coupon-btn"
                         onClick={() => handleOpenModal()}
                         className="bg-[#944555] hover:bg-[#7d3a47] text-white px-4 py-2.5 rounded-xl font-bold text-sm transition-colors shadow-md shadow-[#944555]/20 flex items-center gap-2"
                     >
@@ -162,11 +164,12 @@ const AdminCoupons = () => {
                 </div>
             </div>
 
-            <div className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden">
+            <div data-tour="coupons-table-card" className="bg-white dark:bg-[#1a1c23] rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm overflow-hidden">
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row gap-4 justify-between">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
+                            data-tour="coupons-search"
                             type="text"
                             placeholder="Search code..."
                             value={searchQuery}
@@ -177,7 +180,7 @@ const AdminCoupons = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                    <table data-tour="coupons-table" className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50 dark:bg-[#0f111a]/50 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider">
                                 <th className="p-4 font-bold">Code / Rule</th>
@@ -242,7 +245,7 @@ const AdminCoupons = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a1c23]">
+                <div data-tour="coupons-pagination" className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-[#1a1c23]">
                     <div className="font-bold">Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredCoupons.length)} of {filteredCoupons.length} results</div>
                     <div className="flex gap-1">
                         <button 

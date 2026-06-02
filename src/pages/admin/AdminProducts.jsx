@@ -160,16 +160,14 @@ const AdminProducts = () => {
     const [sortBy, setSortBy] = useState('Newest');
     const [lastUpdated, setLastUpdated] = useState(new Date());
 
-    // Category Hierarchy Map
-    const categoryMap = {
-        'Bras': ['Wireless Bras', 'Padded & Push-Up', 'Lace Bras', 'Bralettes', 'Nursing Bras'],
-        'Panties': ['Seamless Panties', 'High-Waist Panties', 'Bikini Panties', 'Thongs', 'Period Panties'],
-        'Sale%': ['Bras on Sale', 'Panties on Sale', 'Combo Pack Offers', 'Clearance'],
-        'Nightwear': ['Babydolls', 'Pajama Sets', 'Nighties'],
-        'Bestsellers': [],
-        'Combo Packs': [],
-        'Innerwear': ['Camisoles', 'Shapewear']
-    };
+    // Dynamic Category Hierarchy (loaded from DB)
+    // categoryHierarchy = { universal: [...], categories: [{id, name, subs:[...]}] }
+    const [categoryHierarchy, setCategoryHierarchy] = useState({ universal: [], categories: [] });
+
+    // Derive legacy categoryMap for the list-view filters (category name -> subcategory names[])
+    const categoryMap = Object.fromEntries(
+        categoryHierarchy.categories.map(c => [c.name, c.subs.map(s => s.name)])
+    );
     // Category Normalization and Sale Synchronization
     const normalizeAndSyncCategories = (categoriesList, isSale) => {
         let clean = Array.isArray(categoriesList) 
@@ -331,8 +329,46 @@ const AdminProducts = () => {
     const paginatedProducts = products;
 
     const fetchCategories = async () => {
-        const { data, error } = await supabase.from('categories').select('name, slug').order('name');
-        if (!error && data) setAllCategories(data);
+        try {
+            // Try to fetch with hierarchy columns (requires migration)
+            const { data, error } = await supabase
+                .from('categories')
+                .select('id, name, slug, category_type, parent_id')
+                .order('sort_order', { ascending: true })
+                .order('name', { ascending: true });
+
+            if (error) throw error;
+            const rows = data || [];
+
+            // Flat list for legacy usage
+            setAllCategories(rows.map(r => ({ id: r.id, name: r.name, slug: r.slug })));
+
+            // Check if hierarchy columns exist
+            const hasType = rows.length === 0 || rows[0].category_type !== undefined;
+
+            if (hasType) {
+                const universals = rows.filter(r => r.category_type === 'universal');
+                const mainCats = rows.filter(r => r.category_type === 'category');
+                const subCats = rows.filter(r => r.category_type === 'subcategory');
+
+                setCategoryHierarchy({
+                    universal: universals,
+                    categories: mainCats.map(cat => ({
+                        ...cat,
+                        subs: subCats.filter(s => s.parent_id === cat.id)
+                    }))
+                });
+            } else {
+                // Fallback: treat all as flat categories (old schema)
+                setCategoryHierarchy({ universal: [], categories: rows.map(r => ({ ...r, subs: [] })) });
+            }
+        } catch {
+            // Fallback for very old schema with no hierarchy columns
+            const { data } = await supabase.from('categories').select('id, name, slug').order('name');
+            const rows = data || [];
+            setAllCategories(rows);
+            setCategoryHierarchy({ universal: [], categories: rows.map(r => ({ ...r, subs: [] })) });
+        }
     };
 
     const showToast = (message, type = 'success') => {
@@ -885,6 +921,7 @@ const AdminProducts = () => {
         return (
             <div 
                 key={editingProduct ? `edit-${editingProduct.id}` : 'add-new'}
+                data-tour="product-form"
                 className="flex flex-col h-full animate-fade-in-up relative"
             >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
@@ -910,6 +947,7 @@ const AdminProducts = () => {
                             Cancel
                         </button>
                         <button 
+                            data-tour="product-save-btn"
                             onClick={handleSaveProduct}
                             disabled={isSubmitting}
                             className="bg-[#944555] hover:bg-[#7d3a47] text-white px-8 py-3.5 rounded-2xl font-black text-sm transition-all shadow-xl shadow-[#944555]/20 flex items-center gap-3 active:scale-95 disabled:opacity-50"
@@ -924,7 +962,7 @@ const AdminProducts = () => {
                     {/* Left Column (Main details) */}
                     <div className="xl:col-span-2 space-y-6">
                         {/* Basic Info */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-basic-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-5 flex items-center gap-2"><Tag className="w-5 h-5 text-[#944555]" /> Basic Information</h3>
                             <div className="space-y-4">
                                 <div>
@@ -951,7 +989,7 @@ const AdminProducts = () => {
                         </div>
 
                         {/* Material Selection Section */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-material-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <div className="flex justify-between items-center mb-5">
                                 <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
                                     <Palette className="w-5 h-5 text-[#944555]" /> Material Mastery
@@ -1023,7 +1061,7 @@ const AdminProducts = () => {
 
 
                         {/* Media Upload */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-media-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-5 flex items-center gap-2"><ImageIcon className="w-5 h-5 text-[#944555]" /> Media</h3>
 
                             {formData.images.length > 0 && (
@@ -1054,7 +1092,7 @@ const AdminProducts = () => {
                         </div>
 
                         {/* Color Configurations Section */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-color-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <div className="flex justify-between items-center mb-5">
                                 <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2"><Ruler className="w-5 h-5 text-[#944555]" /> Color Management</h3>
                                 <button
@@ -1152,7 +1190,7 @@ const AdminProducts = () => {
                         </div>
 
                         {/* Pricing Component */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-pricing-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-5 flex items-center gap-2"><DollarSign className="w-5 h-5 text-[#944555]" /> Pricing</h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                 <div>
@@ -1218,7 +1256,7 @@ const AdminProducts = () => {
                         </div>
 
                         {/* Size Guide Section */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-sizing-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <div className="flex justify-between items-center mb-5">
                                 <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2">
                                     <Ruler className="w-5 h-5 text-[#944555]" /> Fit & Sizing
@@ -1296,7 +1334,7 @@ const AdminProducts = () => {
                         </div>
 
                         {/* Variants Component */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-variants-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <div className="flex justify-between items-center mb-2">
                                 <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2"><Layers className="w-5 h-5 text-[#944555]" /> Variants</h3>
                                 <button className="text-sm font-bold text-[#944555] hover:underline flex items-center gap-1">
@@ -1386,7 +1424,7 @@ const AdminProducts = () => {
                         </div>
 
                         {/* Specifications Builder */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-specs-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <div className="flex justify-between items-center mb-5">
                                 <h3 className="text-slate-900 dark:text-white font-bold text-lg flex items-center gap-2"><Settings2 className="w-5 h-5 text-[#944555]" /> Specifications</h3>
                                 <button
@@ -1451,7 +1489,7 @@ const AdminProducts = () => {
                     <div className="space-y-6">
 
                         {/* Status */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-status-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-4">Status</h3>
                             <CustomDropdown
                                 options={['Active', 'Draft']}
@@ -1462,7 +1500,7 @@ const AdminProducts = () => {
                         </div>
 
                         {/* Inventory & Tracking */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                        <div data-tour="product-inventory-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                             <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-5 flex items-center gap-2"><Box className="w-5 h-5 text-[#944555]" /> Inventory</h3>
 
                             <div className="space-y-4">
@@ -1508,128 +1546,165 @@ const AdminProducts = () => {
                             </div>
                         </div>
 
-                        {/* Vendors & Organziation */}
-                        <div className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
-                            <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-4">Organization & Categories</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 uppercase tracking-widest text-[10px]">Select Main & Sub Categories</label>
-                                    <div className="space-y-6">
-                                        {/* Main Category */}
-                                        <CustomDropdown
-                                            options={['None', ...Object.keys(categoryMap)]}
-                                            value={formData.categories?.find(c => Object.keys(categoryMap).includes(c)) || 'None'}
-                                            onChange={(val) => {
-                                                const mainCats = Object.keys(categoryMap);
-                                                const allSubCats = Object.values(categoryMap).flat();
-                                                
-                                                // Filter out ALL old main categories AND all old sub-categories
-                                                let newCats = (formData.categories || []).filter(c => 
-                                                    !mainCats.includes(c) && !allSubCats.includes(c)
+                        {/* Vendors & Organization */}
+                        <div data-tour="product-org-card" className="bg-white dark:bg-[#15171e] rounded-[24px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                            <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-1">Organization & Categories</h3>
+                            <p className="text-xs text-slate-400 mb-5 font-medium">Assign universal tags, a main category, and sub-categories for precise storefront placement.</p>
+
+                            <div className="space-y-5">
+
+                                {/* ─── Tier 1: Universal Tags ─── */}
+                                {categoryHierarchy.universal.length > 0 && (
+                                    <div className="p-4 bg-amber-50 dark:bg-amber-500/5 rounded-2xl border border-amber-100 dark:border-amber-500/20">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                                <span className="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+                                                Universal Tags
+                                            </p>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const universalNames = categoryHierarchy.universal.map(u => u.name);
+                                                    setFormData({ ...formData, categories: (formData.categories || []).filter(c => !universalNames.includes(c)) });
+                                                }}
+                                                className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {categoryHierarchy.universal.map(tag => {
+                                                const isOn = formData.categories?.includes(tag.name);
+                                                return (
+                                                    <button
+                                                        key={tag.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            let next = [...(formData.categories || [])];
+                                                            if (isOn) next = next.filter(c => c !== tag.name);
+                                                            else next.push(tag.name);
+                                                            setFormData({ ...formData, categories: next });
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${isOn
+                                                            ? 'bg-amber-500 border-amber-500 text-white shadow-md shadow-amber-200 dark:shadow-amber-900/30'
+                                                            : 'bg-white dark:bg-[#0f111a] border-amber-200 dark:border-amber-500/30 text-amber-600 dark:text-amber-400 hover:border-amber-400'}`}
+                                                    >
+                                                        {tag.name}
+                                                    </button>
                                                 );
-                                                
-                                                if (val !== 'None') {
-                                                    newCats.push(val);
-                                                }
-                                                
-                                                setFormData({ ...formData, categories: newCats });
-                                            }}
-                                            placeholder="Select Main Category"
-                                        />
-
-                                        {/* Sub Categories */}
-                                        {(() => {
-                                            const selectedMain = formData.categories?.find(c => Object.keys(categoryMap).includes(c));
-                                            const subs = selectedMain ? categoryMap[selectedMain] : [];
-                                            
-                                            if (!selectedMain || subs.length === 0) return null;
-
-                                            return (
-                                                <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 animate-fade-in">
-                                                    <div className="flex justify-between items-center mb-3">
-                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#944555]">{selectedMain} Sub-Categories</p>
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const mainCats = Object.keys(categoryMap);
-                                                                // Keep ONLY the main categories (clears all subs and other tags)
-                                                                const newCats = (formData.categories || []).filter(c => mainCats.includes(c));
-                                                                setFormData({ ...formData, categories: newCats });
-                                                            }}
-                                                            className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
-                                                        >
-                                                            Clear All
-                                                        </button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 gap-2">
-                                                        {subs.map(subName => (
-                                                            <label key={subName} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${formData.categories?.includes(subName) ? 'bg-white dark:bg-[#1a1c23] border-[#944555] text-[#944555]' : 'bg-transparent border-slate-200 dark:border-slate-800 text-slate-500'}`}>
-                                                                <input 
-                                                                    type="checkbox" 
-                                                                    className="hidden" 
-                                                                    checked={formData.categories?.includes(subName)}
-                                                                    onChange={() => {
-                                                                        let newCats = [...(formData.categories || [])];
-                                                                        if (newCats.includes(subName)) newCats = newCats.filter(c => c !== subName);
-                                                                        else newCats.push(subName);
-                                                                        setFormData({ ...formData, categories: newCats });
-                                                                    }}
-                                                                />
-                                                                <div className={`w-5 h-5 rounded flex items-center justify-center border ${formData.categories?.includes(subName) ? 'bg-[#944555] border-[#944555]' : 'border-slate-300 dark:border-slate-700'}`}>
-                                                                    {formData.categories?.includes(subName) && <Check className="w-3.5 h-3.5 text-white" />}
-                                                                </div>
-                                                                <span className="text-xs font-bold">{subName}</span>
-                                                            </label>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
+                                            })}
+                                        </div>
                                     </div>
-                                    {allCategories.length === 0 && <p className="text-xs text-slate-400 italic">No categories found. Create one first!</p>}
+                                )}
+
+                                {/* ─── Tier 2: Main Category ─── */}
+                                <div className="p-4 bg-violet-50 dark:bg-violet-500/5 rounded-2xl border border-violet-100 dark:border-violet-500/20">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-600 dark:text-violet-400 mb-3 flex items-center gap-1.5">
+                                        <span className="w-2 h-2 rounded-full bg-violet-400 inline-block"></span>
+                                        Main Category
+                                    </p>
+                                    {categoryHierarchy.categories.length === 0 ? (
+                                        <p className="text-xs text-slate-400 italic">No categories yet. <a href="/admin/categories" className="text-[#944555] underline" target="_blank">Create one</a>.</p>
+                                    ) : (
+                                        <div className="flex flex-wrap gap-2">
+                                            {categoryHierarchy.categories.map(cat => {
+                                                const isOn = formData.categories?.includes(cat.name);
+                                                return (
+                                                    <button
+                                                        key={cat.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const allMainNames = categoryHierarchy.categories.map(c => c.name);
+                                                            const allSubNames = categoryHierarchy.categories.flatMap(c => c.subs.map(s => s.name));
+                                                            // When toggling a main category off: also remove its subs
+                                                            let next = [...(formData.categories || [])];
+                                                            if (isOn) {
+                                                                const thisSubs = cat.subs.map(s => s.name);
+                                                                next = next.filter(c => c !== cat.name && !thisSubs.includes(c));
+                                                            } else {
+                                                                // Remove any other main category if switching (single-main rule)
+                                                                next = next.filter(c => !allMainNames.includes(c) && !allSubNames.includes(c));
+                                                                next.push(cat.name);
+                                                            }
+                                                            setFormData({ ...formData, categories: next });
+                                                        }}
+                                                        className={`px-4 py-2 rounded-xl border-2 text-xs font-black uppercase tracking-wider transition-all active:scale-95 ${isOn
+                                                            ? 'bg-violet-600 border-violet-600 text-white shadow-md shadow-violet-200 dark:shadow-violet-900/30'
+                                                            : 'bg-white dark:bg-[#0f111a] border-violet-200 dark:border-violet-500/30 text-violet-600 dark:text-violet-400 hover:border-violet-400'}`}
+                                                    >
+                                                        {cat.name}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Other/Legacy Categories */}
-                                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-white/5">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest text-[10px]">Other Tags</label>
-                                        <button 
-                                            type="button"
-                                            onClick={() => {
-                                                const mainCats = Object.keys(categoryMap);
-                                                const knownSubs = Object.values(categoryMap).flat();
-                                                const remainingCats = (formData.categories || []).filter(c => mainCats.includes(c) || knownSubs.includes(c));
-                                                setFormData({ ...formData, categories: remainingCats });
-                                            }}
-                                            className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
-                                        >
-                                            Clear All
-                                        </button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {allCategories.filter(cat => {
-                                            const isMain = Object.keys(categoryMap).includes(cat.name);
-                                            const isKnownSub = Object.values(categoryMap).flat().includes(cat.name);
-                                            return !isMain && !isKnownSub;
-                                        }).map(cat => (
-                                            <label key={cat.slug} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${formData.categories?.includes(cat.name) ? 'bg-[#fff5f6] border-[#944555] text-[#944555]' : 'bg-slate-50 dark:bg-[#1a1c23] border-slate-200 dark:border-slate-800 text-slate-400'}`}>
-                                                <input 
-                                                    type="checkbox" 
-                                                    className="hidden" 
-                                                    checked={formData.categories?.includes(cat.name)}
-                                                    onChange={() => {
-                                                        let newCats = [...(formData.categories || [])];
-                                                        if (newCats.includes(cat.name)) newCats = newCats.filter(c => c !== cat.name);
-                                                        else newCats.push(cat.name);
-                                                        setFormData({ ...formData, categories: newCats });
+                                {/* ─── Tier 3: Sub-Categories ─── */}
+                                {(() => {
+                                    const allMainNames = categoryHierarchy.categories.map(c => c.name);
+                                    const selectedMain = categoryHierarchy.categories.find(c => formData.categories?.includes(c.name));
+                                    if (!selectedMain || selectedMain.subs.length === 0) return null;
+                                    return (
+                                        <div className="p-4 bg-blue-50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 animate-fade-in">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                                                    <span className="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+                                                    {selectedMain.name} Sub-Categories
+                                                </p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const subNames = selectedMain.subs.map(s => s.name);
+                                                        setFormData({ ...formData, categories: (formData.categories || []).filter(c => !subNames.includes(c)) });
                                                     }}
-                                                />
-                                                {cat.name}
-                                            </label>
+                                                    className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    Clear All
+                                                </button>
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-2">
+                                                {selectedMain.subs.map(sub => {
+                                                    const isOn = formData.categories?.includes(sub.name);
+                                                    return (
+                                                        <label key={sub.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${isOn ? 'bg-white dark:bg-[#1a1c23] border-blue-400 text-blue-600 dark:text-blue-400' : 'bg-transparent border-slate-200 dark:border-slate-800 text-slate-500'}`}>
+                                                            <input
+                                                                type="checkbox"
+                                                                className="hidden"
+                                                                checked={isOn}
+                                                                onChange={() => {
+                                                                    let next = [...(formData.categories || [])];
+                                                                    if (isOn) next = next.filter(c => c !== sub.name);
+                                                                    else next.push(sub.name);
+                                                                    setFormData({ ...formData, categories: next });
+                                                                }}
+                                                            />
+                                                            <div className={`w-4 h-4 rounded flex items-center justify-center border shrink-0 transition-all ${isOn ? 'bg-blue-500 border-blue-500' : 'border-slate-300 dark:border-slate-700'}`}>
+                                                                {isOn && <Check className="w-3 h-3 text-white" />}
+                                                            </div>
+                                                            <span className="text-xs font-bold">{sub.name}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Active Summary */}
+                                {(formData.categories || []).length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 pt-1">
+                                        {formData.categories.map(cat => (
+                                            <span key={cat} className="inline-flex items-center gap-1.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full">
+                                                {cat}
+                                                <button type="button" onClick={() => setFormData({ ...formData, categories: formData.categories.filter(c => c !== cat) })} className="hover:text-red-500 transition-colors leading-none">×</button>
+                                            </span>
                                         ))}
                                     </div>
-                                </div>
-                                <div>
+                                )}
+
+                                {/* Supplier Reference */}
+                                <div className="pt-4 border-t border-slate-100 dark:border-white/5">
                                     <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex justify-between">
                                         Supplier Reference <span className="text-slate-400 text-xs font-normal">Optional</span>
                                     </label>
@@ -1644,6 +1719,7 @@ const AdminProducts = () => {
                             </div>
                         </div>
 
+
                     </div>
                 </div>
             </div>
@@ -1654,7 +1730,7 @@ const AdminProducts = () => {
     return (
         <div className="space-y-6 animate-fade-in relative pb-12">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                <div>
+                <div data-tour="catalog-header">
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Master Catalog</h1>
                     <div className="flex items-center gap-2 mt-1">
                         <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Manage global product availability and variants</p>
@@ -1667,6 +1743,7 @@ const AdminProducts = () => {
 
                 <div className="flex items-center gap-3 w-full sm:w-auto">
                     <button 
+                        data-tour="refresh-board-btn"
                         onClick={() => fetchProducts(currentPage)}
                         disabled={loading}
                         className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:border-[#944555] text-slate-700 dark:text-slate-300 px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-all shadow-sm hover:shadow-md disabled:opacity-50 active:scale-95 group"
@@ -1682,6 +1759,7 @@ const AdminProducts = () => {
                         className="hidden" 
                     />
                     <button 
+                        data-tour="import-csv-btn"
                         onClick={() => fileInputRef.current?.click()} 
                         disabled={importing}
                         className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold bg-white dark:bg-[#15171e] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
@@ -1689,12 +1767,13 @@ const AdminProducts = () => {
                         <Upload className={`w-4 h-4 ${importing ? 'animate-bounce' : ''}`} /> {importing ? 'Importing...' : 'Import CSV'}
                     </button>
                     <button 
+                        data-tour="template-csv-btn"
                         onClick={downloadCSVTemplate}
                         className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl font-bold bg-white dark:bg-[#15171e] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition shadow-sm flex items-center justify-center gap-2"
                     >
                         <Download className="w-4 h-4" /> Template
                     </button>
-                    <button onClick={handleAddProduct} className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-bold bg-[#944555] text-white hover:bg-[#7d3a47] transition shadow-md shadow-[#944555]/20 flex items-center justify-center gap-2">
+                    <button data-tour="add-product-btn" onClick={handleAddProduct} className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl font-bold bg-[#944555] text-white hover:bg-[#7d3a47] transition shadow-md shadow-[#944555]/20 flex items-center justify-center gap-2">
                         <Plus className="w-4 h-4" /> Add Product
                     </button>
                 </div>
@@ -1705,7 +1784,7 @@ const AdminProducts = () => {
                 {/* Search & Filter Bar */}
                 <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex flex-col xl:flex-row justify-between gap-4 bg-slate-50/50 dark:bg-[#1a1c23]/50">
                     <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex bg-white dark:bg-[#15171e] rounded-xl border border-slate-200 dark:border-slate-800 p-1">
+                        <div data-tour="status-filter-tabs" className="flex bg-white dark:bg-[#15171e] rounded-xl border border-slate-200 dark:border-slate-800 p-1">
                             {['All', 'Active', 'Draft'].map(status => (
                                 <button
                                     key={status}
@@ -1719,7 +1798,7 @@ const AdminProducts = () => {
                             ))}
                         </div>
 
-                        <div className="w-48">
+                        <div data-tour="category-dropdown" className="w-48">
                             <CustomDropdown 
                                 options={['All', ...Object.keys(categoryMap)]}
                                 value={categoryFilter}
@@ -1742,7 +1821,7 @@ const AdminProducts = () => {
                             </div>
                         )}
 
-                        <div className="w-48">
+                        <div data-tour="sort-dropdown" className="w-48">
                             <CustomDropdown 
                                 options={['Newest', 'Oldest', 'Price Low to High', 'Price High to Low', 'Stock Low to High', 'Stock High to Low']}
                                 value={sortBy}
@@ -1770,7 +1849,7 @@ const AdminProducts = () => {
                     </div>
 
                     <div className="flex gap-3">
-                        <div className="flex items-center bg-white dark:bg-[#15171e] border border-slate-200 dark:border-slate-700 rounded-xl px-3 focus-within:ring-2 focus-within:ring-[#944555]/50 w-full sm:w-64 transition-all">
+                        <div data-tour="search-input" className="flex items-center bg-white dark:bg-[#15171e] border border-slate-200 dark:border-slate-700 rounded-xl px-3 focus-within:ring-2 focus-within:ring-[#944555]/50 w-full sm:w-64 transition-all">
                             <Search className="w-4 h-4 text-slate-400 shrink-0" />
                             <input
                                 type="text"
@@ -1784,7 +1863,7 @@ const AdminProducts = () => {
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto overflow-y-auto flex-1 hide-scrollbar">
+                <div data-tour="products-table" className="overflow-x-auto overflow-y-auto flex-1 hide-scrollbar">
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead className="sticky top-0 bg-white dark:bg-[#15171e] z-10 shadow-sm dark:shadow-slate-900/10">
                             <tr>
@@ -1901,7 +1980,7 @@ const AdminProducts = () => {
 
                 {/* Pagination */}
                 {totalCount > 0 && (
-                    <div className="mx-8 mb-8 p-4 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-[#1a1c23] rounded-xl shadow-lg gap-4">
+                    <div data-tour="pagination-nav" className="mx-8 mb-8 p-4 border-t border-slate-100 dark:border-slate-800/50 flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-[#1a1c23] rounded-xl shadow-lg gap-4">
                         <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
                             Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, totalCount)} of {totalCount} products
                         </div>

@@ -29,8 +29,43 @@ const AdminSizeGuides = () => {
     const [notification, setNotification] = useState(null);
     const { showAlert } = useAlert();
 
+    const [isTutorialOpen, setIsTutorialOpen] = useState(false);
+    const [tutorialStep, setTutorialStep] = useState(0);
+
+    const tutorialSteps = [
+        {
+            title: "Welcome to Bloomina Fit Atelier",
+            description: "This Sizing Suite allows you to create interactive, dynamic size charts that automatically convert between Inches and Centimeters on the storefront, giving customers precision fitting details.",
+            icon: <Ruler className="w-12 h-12 text-[#944555]" />,
+            tip: "A well-defined size guide reduces purchase returns by up to 40%!"
+        },
+        {
+            title: "Step 1: Set Up Garment Dimensions (Columns)",
+            description: "Use 'Add Dimension' in the builder grid to specify what measurements to gather (e.g. Chest (in), Waist (in), Sleeve Length). Double-click or edit headers to customize them. Keep header labels unique.",
+            icon: <Columns className="w-12 h-12 text-[#944555]" />,
+            tip: "Suffix headers with '(in)' so our auto-converter knows how to render metric conversions on the customer-facing store."
+        },
+        {
+            title: "Step 2: Add Sizing Rows",
+            description: "Click 'Add Size Row' to input measurements for different sizes (S, M, L, XL, etc.). You can enter range values like '32-34' or solid figures. Enter as many increments as your product lines require.",
+            icon: <Grid className="w-12 h-12 text-[#944555]" />,
+            tip: "Use values in inches; the storefront automatically converts ranges like '34-36' to '86-91 cm' when the user toggles the unit switch!"
+        },
+        {
+            title: "Step 3: Link Sizing to Products",
+            description: "Once your size guide is created, edit any product in the 'Products' tab and assign this size guide from the dropdown. The interactive chart will instantly render on that product's detail page.",
+            icon: <CheckCircle className="w-12 h-12 text-[#944555]" />,
+            tip: "Multiple products (e.g., all bralettes or all matching panties) can share a single size guide definition to make updates easy."
+        }
+    ];
+
     useEffect(() => {
         fetchSizeGuides();
+        const hasSeenTutorial = localStorage.getItem('bloomina_sizeguides_tutorial_seen');
+        if (!hasSeenTutorial) {
+            setIsTutorialOpen(true);
+            localStorage.setItem('bloomina_sizeguides_tutorial_seen', 'true');
+        }
     }, []);
 
     const showToast = (message, type = 'success') => {
@@ -268,12 +303,13 @@ const AdminSizeGuides = () => {
 
             <div className="max-w-7xl mx-auto space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
+                    <div data-tour="size-guide-header">
                         <h1 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Size Charts & Guides</h1>
                         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage interactive fit tables displayed on the product storefront.</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <button
+                            data-tour="size-guide-refresh"
                             onClick={fetchSizeGuides}
                             disabled={loading}
                             className="flex items-center gap-2 bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50"
@@ -282,6 +318,18 @@ const AdminSizeGuides = () => {
                             Refresh
                         </button>
                         <button
+                            data-tour="size-guide-help"
+                            onClick={() => {
+                                setTutorialStep(0);
+                                setIsTutorialOpen(true);
+                            }}
+                            className="flex items-center gap-2 bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm"
+                        >
+                            <HelpCircle className="w-4 h-4 text-[#944555]" />
+                            Tour & Help
+                        </button>
+                        <button
+                            data-tour="create-guide-btn"
                             onClick={() => openModal()}
                             className="flex items-center gap-2 bg-[#944555] hover:bg-[#7d3a47] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm shrink-0"
                         >
@@ -291,11 +339,12 @@ const AdminSizeGuides = () => {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+                <div data-tour="guides-table" className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[calc(100vh-200px)]">
                     <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-[#1a1c23]">
                         <div className="relative max-w-md w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
+                                data-tour="guides-search"
                                 type="text"
                                 placeholder="Search size charts..."
                                 value={searchTerm}
@@ -563,6 +612,99 @@ const AdminSizeGuides = () => {
                     </div>
                 )}
             </div>
+
+            {/* Tutorial Popup Modal */}
+            {isTutorialOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4 transition-all animate-fade-in">
+                    <div className="bg-white dark:bg-[#1a1c23] rounded-[32px] shadow-2xl w-full max-w-xl overflow-hidden transform transition-all border border-slate-200 dark:border-slate-800 flex flex-col relative max-h-[90vh] animate-scale-in">
+                        {/* Close button */}
+                        <button
+                            onClick={() => setIsTutorialOpen(false)}
+                            className="absolute top-5 right-5 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all z-10"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="p-8 flex flex-col items-center text-center space-y-6">
+                            {/* Animated icon container */}
+                            <div className="w-20 h-20 rounded-full bg-[#944555]/10 dark:bg-[#944555]/20 flex items-center justify-center shrink-0 animate-pulse">
+                                {tutorialSteps[tutorialStep].icon}
+                            </div>
+
+                            {/* Title & Description */}
+                            <div className="space-y-3">
+                                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                    {tutorialSteps[tutorialStep].title}
+                                </h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
+                                    {tutorialSteps[tutorialStep].description}
+                                </p>
+                            </div>
+
+                            {/* Tooltip box */}
+                            <div className="w-full p-4.5 rounded-2xl bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/10 text-amber-600 dark:text-amber-400 flex items-start gap-3 text-left">
+                                <HelpCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-wider">Atelier Tip</p>
+                                    <p className="text-[11px] font-medium leading-relaxed mt-0.5">{tutorialSteps[tutorialStep].tip}</p>
+                                </div>
+                            </div>
+
+                            {/* Progress Dots */}
+                            <div className="flex gap-2">
+                                {tutorialSteps.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setTutorialStep(idx)}
+                                        className={`h-2 rounded-full transition-all duration-300 ${
+                                            tutorialStep === idx ? 'w-6 bg-[#944555]' : 'w-2 bg-slate-200 dark:bg-slate-700'
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Footer Buttons */}
+                            <div className="flex gap-3 w-full pt-2">
+                                {tutorialStep > 0 ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setTutorialStep(prev => prev - 1)}
+                                        className="flex-1 px-5 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all"
+                                    >
+                                        Back
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsTutorialOpen(false)}
+                                        className="flex-1 px-5 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition-all"
+                                    >
+                                        Skip
+                                    </button>
+                                )}
+
+                                {tutorialStep < tutorialSteps.length - 1 ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setTutorialStep(prev => prev + 1)}
+                                        className="flex-1 px-5 py-3 bg-[#944555] hover:bg-[#7d3a47] text-white font-bold rounded-xl transition-all shadow-md shadow-[#944555]/10"
+                                    >
+                                        Next Step
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsTutorialOpen(false)}
+                                        className="flex-1 px-5 py-3 bg-[#944555] hover:bg-[#7d3a47] text-white font-bold rounded-xl transition-all shadow-md shadow-[#944555]/10"
+                                    >
+                                        Done, Let's Start!
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

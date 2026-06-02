@@ -201,11 +201,12 @@ const AdminHero = () => {
 
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Hero Slideshow</h1>
+                    <h1 data-tour="hero-header" className="text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Hero Slideshow</h1>
                     <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Manage the high-impact images on your storefront home page.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
+                        data-tour="hero-refresh-btn"
                         onClick={fetchSlides}
                         disabled={loading}
                         className="flex items-center gap-2 bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm disabled:opacity-50"
@@ -214,6 +215,7 @@ const AdminHero = () => {
                         Refresh
                     </button>
                     <button
+                        data-tour="hero-add-btn"
                         onClick={() => openModal()}
                         className="flex items-center gap-2 bg-[#944555] hover:bg-[#7d3a47] text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm"
                     >
@@ -223,7 +225,7 @@ const AdminHero = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div data-tour="hero-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
                     Array(3).fill(0).map((_, i) => (
                         <div key={i} className="aspect-video bg-white dark:bg-[#1a1c23] rounded-3xl animate-pulse border border-slate-200 dark:border-slate-800" />

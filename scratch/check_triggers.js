@@ -1,8 +1,37 @@
 import pg from 'pg';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Parse .env file
+const envPath = path.join(__dirname, '../.env');
+let databaseUrl = process.env.DATABASE_URL;
+
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const parts = line.split('=');
+    if (parts.length >= 2) {
+      const key = parts[0].trim();
+      const val = parts.slice(1).join('=').trim();
+      if (key === 'DATABASE_URL') {
+        databaseUrl = val;
+      }
+    }
+  });
+}
+
+if (!databaseUrl) {
+  console.error("Error: DATABASE_URL not configured in environment or .env file.");
+  process.exit(1);
+}
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const connectionString = "postgres://postgres.pshiqbehsouzzljbsdhg:Bloomina%402026@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require";
+const connectionString = databaseUrl;
 
 async function checkDb() {
     const client = new pg.Client({ 

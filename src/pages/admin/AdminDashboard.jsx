@@ -224,7 +224,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Main Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div data-tour="stats-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {[
                     { label: 'Total Revenue', value: formatCurrency(stats.revenue), icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-100/50 dark:bg-emerald-500/10' },
                     { label: 'Total Orders', value: stats.orders, icon: ShoppingBag, color: 'text-[#944555]', bg: 'bg-[#fff5f6] dark:bg-[#944555]/10' },
@@ -246,9 +246,16 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
                 {/* Main Left Column */}
                 <div className="xl:col-span-2 space-y-6 flex flex-col">
-                    <div className="bg-gradient-to-r from-[#944555] to-[#f191a1] rounded-3xl overflow-hidden relative shadow-lg shadow-[#944555]/20 animate-fade-in">
-                        <div className="relative z-10 p-8 md:w-2/3">
-                            <h2 className="text-white text-3xl font-black tracking-tight leading-tight mb-4">
+                    <div 
+                        data-tour="welcome-banner"
+                        className="rounded-3xl overflow-hidden relative shadow-lg shadow-[#944555]/20 animate-fade-in bg-cover bg-center min-h-[240px] flex items-center"
+                        style={{ backgroundImage: `url('/Gemini_Generated_Image_h9czikh9czikh9cz.png')` }}
+                    >
+                        {/* High contrast gradient overlay to ensure text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-[#944555] via-[#944555]/85 to-transparent z-0" />
+
+                        <div className="relative z-10 p-8 md:w-2/3 flex flex-col justify-center">
+                            <h2 className="text-white text-3xl font-black tracking-tight leading-tight mb-4 animate-fade-in">
                                 Welcome to Bloomina <span className="inline-block text-2xl animate-bounce">✨</span>
                             </h2>
                             <p className="text-rose-100 text-sm mb-8 font-medium">
@@ -259,12 +266,9 @@ const AdminDashboard = () => {
                                 View Analytics Report <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Link>
                         </div>
-                        <div className="absolute right-0 bottom-0 top-0 w-1/2 opacity-20 pointer-events-none">
-                            <div className="absolute -right-20 -top-20 w-80 h-80 bg-white rounded-full blur-3xl mix-blend-overlay"></div>
-                        </div>
                     </div>
 
-                    <div className="bg-white dark:bg-[#15171e] rounded-[32px] p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex-1 min-h-[400px] flex flex-col">
+                    <div data-tour="performance-chart" className="bg-white dark:bg-[#15171e] rounded-[32px] p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex-1 min-h-[400px] flex flex-col">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h3 className="text-slate-900 dark:text-white font-bold text-lg">Weekly Performance</h3>
@@ -326,7 +330,7 @@ const AdminDashboard = () => {
 
                 {/* Right Column */}
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-[#15171e] rounded-[32px] p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col h-fit">
+                    <div data-tour="market-distribution" className="bg-white dark:bg-[#15171e] rounded-[32px] p-6 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col h-fit">
                         <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-6 tracking-tight">Market Distribution</h3>
                         <div className="space-y-6 flex-1">
                             <div className="p-5 rounded-3xl bg-[#fff5f6] dark:bg-[#944555]/5 border border-[#944555]/10 relative overflow-hidden group">
@@ -416,7 +420,7 @@ const AdminDashboard = () => {
                     </div>
 
                     {/* Operational Insights Section */}
-                    <div className="bg-white dark:bg-[#15171e] rounded-[32px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div data-tour="operational-insights" className="bg-white dark:bg-[#15171e] rounded-[32px] p-6 shadow-sm border border-slate-100 dark:border-slate-800">
                         <h3 className="text-slate-900 dark:text-white font-bold text-lg mb-6 tracking-tight">Operational Insights</h3>
                         <div className="grid grid-cols-1 gap-4">
                             {/* Inventory Page Link */}
@@ -494,7 +498,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Recent Leads Preview Section */}
-            <div className="bg-white dark:bg-[#15171e] rounded-[32px] p-8 shadow-sm border border-slate-100 dark:border-slate-800">
+            <div data-tour="customer-leads" className="bg-white dark:bg-[#15171e] rounded-[32px] p-8 shadow-sm border border-slate-100 dark:border-slate-800">
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h3 className="text-slate-900 dark:text-white font-black text-xl tracking-tight">Recent Customer Leads</h3>
