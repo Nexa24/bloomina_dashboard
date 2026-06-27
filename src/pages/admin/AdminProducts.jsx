@@ -159,6 +159,7 @@ const AdminProducts = () => {
     const [selectedIds, setSelectedIds] = useState([]);
     const [sortBy, setSortBy] = useState('Newest');
     const [lastUpdated, setLastUpdated] = useState(new Date());
+    const [customSizeInput, setCustomSizeInput] = useState('');
 
     // Dynamic Category Hierarchy (loaded from DB)
     // categoryHierarchy = { universal: [...], categories: [{id, name, subs:[...]}] }
@@ -1385,15 +1386,32 @@ const AdminProducts = () => {
                                             const isBra = formData.categories?.some(c => c.toLowerCase().includes('bra'));
                                             const isPanty = formData.categories?.some(c => c.toLowerCase().includes('pant') || c.toLowerCase().includes('brief'));
                                             
-                                            let sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+                                            let defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
                                             if (isBra) {
-                                                sizeOptions = ['32B', '32C', '34B', '34C', '34D', '36B', '36C', '36D', '38B', '38C', '38D', '40B', '40C', '40D'];
+                                                defaultSizes = ['32B', '32C', '34B', '34C', '34D', '36B', '36C', '36D', '38B', '38C', '38D', '40B', '40C', '40D'];
                                             } else if (isPanty) {
-                                                sizeOptions = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
+                                                defaultSizes = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
                                             }
 
+                                            // Extract sizes from the selected size guide (if any)
+                                            let guideSizes = [];
+                                            if (formData.size_guide_id && allSizeGuides.length > 0) {
+                                                const selectedGuide = allSizeGuides.find(g => g.id === formData.size_guide_id);
+                                                if (selectedGuide?.chart_data?.length > 0) {
+                                                    guideSizes = selectedGuide.chart_data.map(row => {
+                                                        const keys = Object.keys(row);
+                                                        const sizeKey = keys.find(k => k.toLowerCase() === 'size') || keys[0];
+                                                        return row[sizeKey];
+                                                    }).filter(Boolean);
+                                                }
+                                            }
+
+                                            const currentSizes = formData.variants?.find(v => v.name === 'Size')?.values || [];
+                                            const sizeOptions = guideSizes.length > 0
+                                                ? [...new Set([...guideSizes, ...currentSizes])]
+                                                : [...new Set([...defaultSizes, ...currentSizes])];
+
                                             return sizeOptions.map(size => {
-                                                const currentSizes = formData.variants?.find(v => v.name === 'Size')?.values || [];
                                                 const isSelected = currentSizes.includes(size);
                                                 return (
                                                     <button
@@ -1418,6 +1436,40 @@ const AdminProducts = () => {
                                                 );
                                             });
                                         })()}
+                                    </div>
+                                    <div className="flex gap-2 mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-800/50">
+                                        <input
+                                            type="text"
+                                            value={customSizeInput}
+                                            onChange={(e) => setCustomSizeInput(e.target.value)}
+                                            placeholder="Add custom size (e.g. 5XL)"
+                                            className="flex-1 max-w-[200px] bg-white dark:bg-[#0f111a] border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#944555]/50 font-bold transition-all"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const newSize = customSizeInput.trim();
+                                                if (!newSize) return;
+                                                
+                                                let newVariants = [...(formData.variants || [])];
+                                                const sizeIdx = newVariants.findIndex(v => v.name === 'Size');
+                                                const currentSizes = formData.variants?.find(v => v.name === 'Size')?.values || [];
+                                                let values = [...currentSizes];
+                                                
+                                                if (!values.includes(newSize)) {
+                                                    values.push(newSize);
+                                                }
+                                                
+                                                if (sizeIdx >= 0) newVariants[sizeIdx].values = values;
+                                                else newVariants.push({ name: 'Size', values });
+                                                
+                                                setFormData({ ...formData, variants: newVariants });
+                                                setCustomSizeInput('');
+                                            }}
+                                            className="bg-[#944555] hover:bg-[#944555]/90 text-white font-bold text-xs px-4 py-1.5 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" /> Add Size
+                                        </button>
                                     </div>
                                 </div>
                             </div>
