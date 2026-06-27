@@ -432,74 +432,82 @@ const AdminOrders = () => {
                     @media print {
                         @page { margin: 0; size: A4 portrait; }
                         body { margin: 0; padding: 0; background: white !important; -webkit-print-color-adjust: exact; }
-                        #print-sticker-container { transform: scale(1); transform-origin: top center; }
+                        html, body { height: 100%; overflow: hidden; }
                     }
                 ` }} />
                 
                 {selectedOrder && (
-                    <div id="print-sticker-container" className="flex flex-col items-center py-2 px-2">
+                    <div id="print-sticker-container" className="w-full h-full flex flex-col items-center justify-center bg-white p-0 box-border overflow-hidden">
                         {/* 📦 THE STICKER BOX */}
-                        <div className="w-full max-w-[15cm] border-[8px] border-black p-4 flex flex-col font-mono text-black bg-white shadow-none">
-                            {/* 🏢 Brand Header (Moved Inside) */}
-                            <div className="flex items-center justify-center gap-4 mb-4 border-b-[6px] border-black pb-4">
-                                <img src="/logo/BLO_TRNSP_LOVE_ICON.png" alt="Bloomina Logo" className="h-12 object-contain" />
-                                <div className="text-left">
-                                    <h1 className="text-3xl font-black tracking-tighter text-slate-900 leading-none">Bloomina</h1>
-                                    <p className="text-[9px] font-bold tracking-[0.2em] text-slate-400 uppercase mt-0.5">OFFICIAL FULFILLMENT DESK</p>
-                                </div>
-                            </div>
-
-                            {/* Inner Motto Header */}
-                            <div className="border-b-[4px] border-black pb-2 mb-4 text-center">
-                                <p className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 font-sans">PREMIUM LINGERIE & CLOTHING</p>
-                            </div>
+                        <div className="w-[19cm] h-[26.7cm] border-[12px] border-black p-8 flex flex-col justify-between font-mono text-black bg-white shadow-none box-border overflow-hidden">
                             
-                            <div className="flex-1 space-y-3">
-                                <div>
-                                    <p className="text-base font-black uppercase underline mb-2">Deliver To:</p>
+                            {/* Top Section */}
+                            <div className="space-y-4">
+                                {/* 🏢 Brand Header */}
+                                <div className="flex justify-center border-b-[6px] border-black pb-4">
+                                    <img src="/logo/BLO_TRNSP_PINK_LRG.png" alt="Bloomina Logo" className="h-28 object-contain" />
+                                </div>
+
+                                {/* 🏢 Return Address (Sender) */}
+                                <div className="border-b-[4px] border-black pb-3 text-xs leading-relaxed">
+                                    <p className="text-xs font-black uppercase underline mb-0.5">Sender / Return Address:</p>
+                                    <p className="font-bold uppercase">Live Wear Apparels Private Limited</p>
+                                    <p>150/8438 MOUNTPARK INDUSTRIAL ESTATES</p>
+                                    <p>Pushpagiri, Koodaranji Panchayat</p>
+                                    <p>Kozhikode, Kerala - 673604</p>
+                                    <p className="font-bold">Phone: 9567797776</p>
+                                </div>
+
+                                {/* Deliver To */}
+                                <div className="space-y-1">
+                                    <p className="text-xs font-black uppercase underline">Deliver To:</p>
                                     <h3 className="text-4xl font-black uppercase leading-tight tracking-tight">{selectedOrder.customer_name}</h3>
-                                    <div className="text-2xl mt-2 leading-relaxed uppercase font-bold space-y-1">
+                                    <div className="text-xl leading-snug uppercase font-bold space-y-0.5">
                                         <p>{selectedOrder.shipping_address?.street}</p>
                                         <p>{selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.state}</p>
-                                        <div className="flex items-baseline gap-4 mt-1">
+                                        <div className="flex items-baseline gap-3 mt-1">
                                             <p className="text-5xl font-black">{selectedOrder.shipping_address?.zip}</p>
-                                            <p className="text-lg tracking-[0.5em] text-slate-400 font-black">INDIA</p>
+                                            <p className="text-sm tracking-[0.5em] text-slate-400 font-black">INDIA</p>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div className="grid grid-cols-2 gap-6 border-t-6 border-dashed border-black pt-4">
+                                {/* Info Grid */}
+                                <div className="grid grid-cols-2 gap-4 border-t-[6px] border-dashed border-black pt-4">
                                     <div>
                                         <p className="text-[10px] font-black uppercase text-slate-400">CONTACT:</p>
-                                        <p className="text-2xl font-black mt-1 leading-none">{selectedOrder.phone}</p>
+                                        <p className="text-2xl font-black mt-0.5 leading-none">{selectedOrder.phone}</p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[10px] font-black uppercase text-slate-400">BATCH REFERENCE:</p>
-                                        <p className="text-xl font-black mt-1 leading-none font-sans tracking-tighter">#{(selectedOrder.id || '').toUpperCase()}</p>
+                                        <p className="text-lg font-black mt-0.5 leading-none font-sans tracking-tighter">#{(selectedOrder.id || '').toUpperCase()}</p>
                                     </div>
                                 </div>
                                 
-                                <div className="border-t-6 border-dashed border-black pt-4">
-                                    <p className="text-base font-black uppercase underline mb-2">CONSIGNMENT CONTENTS:</p>
+                                {/* Contents */}
+                                <div className="border-t-[6px] border-dashed border-black pt-4">
+                                    <p className="text-xs font-black uppercase underline mb-1">CONSIGNMENT CONTENTS:</p>
                                     <div className="space-y-1">
                                         {(selectedOrder.items || []).map((it, idx) => (
                                             <div key={idx} className="flex justify-between items-start text-xl">
                                                 <span className="font-black">[{it.quantity}X] {it.title}</span>
-                                                <span className="text-slate-400 font-bold text-[10px] uppercase flex-shrink-0 ml-4">SKU: BLO-{(it.id || '99').slice(0,6)}</span>
+                                                <span className="text-slate-400 font-bold text-[10px] uppercase flex-shrink-0 ml-4 font-sans">SKU: BLO-{(it.id || '99').slice(0,6)}</span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="mt-4 p-4 border-[6px] border-black text-center bg-transparent">
-                                    <p className="text-base font-black uppercase mb-1">PAYMENT METHOD:</p>
+                                {/* Payment Info */}
+                                <div className="p-4 border-[6px] border-black text-center bg-transparent">
+                                    <p className="text-xs font-black uppercase mb-0.5">PAYMENT METHOD:</p>
                                     <h4 className="text-4xl font-black uppercase tracking-tighter">
                                         {selectedOrder.payment_method?.toUpperCase()?.includes('COD') || selectedOrder.metadata?.payment_method?.toUpperCase()?.includes('COD') ? 'CASH ON DELIVERY' : 'PREPAID'}
                                     </h4>
                                 </div>
                             </div>
 
-                            <div className="mt-4 pt-4 text-center border-t-[4px] border-black">
+                            {/* Footer / Thank you */}
+                            <div className="pt-4 text-center border-t-[4px] border-black">
                                 <p className="text-xl font-black italic">Thank you for shopping at Bloomina!</p>
                                 <p className="text-[10px] mt-1 text-slate-400 font-black uppercase tracking-widest leading-none">OFFICIAL LOGISTICS - HANDLE WITH CARE</p>
                             </div>
