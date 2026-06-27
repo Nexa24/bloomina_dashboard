@@ -445,7 +445,7 @@ const AdminOrders = () => {
                             <div className="space-y-4">
                                 {/* 🏢 Brand Header */}
                                 <div className="flex justify-center border-b-[6px] border-black pb-4">
-                                    <img src="/logo/BLO_TRNSP_PINK_LRG.png" alt="Bloomina Logo" className="h-28 object-contain" />
+                                    <img src="/logo/BLO_TRNSP_PINK_LRG.png" alt="Bloomina Logo" className="h-28 object-contain animate-none" style={{ filter: 'brightness(0)' }} />
                                 </div>
 
                                 {/* 🏢 Return Address (Sender) */}
@@ -456,6 +456,8 @@ const AdminOrders = () => {
                                     <p>Pushpagiri, Koodaranji Panchayat</p>
                                     <p>Kozhikode, Kerala - 673604</p>
                                     <p className="font-bold">Phone: 9567797776</p>
+                                    <p className="font-bold">Email: support@bloomina.in</p>
+                                    <p className="font-bold">Website: www.bloomina.in</p>
                                 </div>
 
                                 {/* Deliver To */}
@@ -467,7 +469,7 @@ const AdminOrders = () => {
                                         <p>{selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.state}</p>
                                         <div className="flex items-baseline gap-3 mt-1">
                                             <p className="text-5xl font-black">{selectedOrder.shipping_address?.zip}</p>
-                                            <p className="text-sm tracking-[0.5em] text-slate-400 font-black">INDIA</p>
+                                            <p className="text-sm tracking-[0.5em] text-black font-black">INDIA</p>
                                         </div>
                                     </div>
                                 </div>
@@ -475,11 +477,11 @@ const AdminOrders = () => {
                                 {/* Info Grid */}
                                 <div className="grid grid-cols-2 gap-4 border-t-[6px] border-dashed border-black pt-4">
                                     <div>
-                                        <p className="text-[10px] font-black uppercase text-slate-400">CONTACT:</p>
+                                        <p className="text-[10px] font-black uppercase text-black">CONTACT:</p>
                                         <p className="text-2xl font-black mt-0.5 leading-none">{selectedOrder.phone}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-black uppercase text-slate-400">BATCH REFERENCE:</p>
+                                        <p className="text-[10px] font-black uppercase text-black">BATCH REFERENCE:</p>
                                         <p className="text-lg font-black mt-0.5 leading-none font-sans tracking-tighter">#{(selectedOrder.id || '').toUpperCase()}</p>
                                     </div>
                                 </div>
@@ -491,7 +493,7 @@ const AdminOrders = () => {
                                         {(selectedOrder.items || []).map((it, idx) => (
                                             <div key={idx} className="flex justify-between items-start text-xl">
                                                 <span className="font-black">[{it.quantity}X] {it.title}</span>
-                                                <span className="text-slate-400 font-bold text-[10px] uppercase flex-shrink-0 ml-4 font-sans">SKU: BLO-{(it.id || '99').slice(0,6)}</span>
+                                                <span className="text-black font-bold text-[10px] uppercase flex-shrink-0 ml-4 font-sans">SKU: BLO-{(it.id || '99').slice(0,6)}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -509,7 +511,7 @@ const AdminOrders = () => {
                             {/* Footer / Thank you */}
                             <div className="pt-4 text-center border-t-[4px] border-black">
                                 <p className="text-xl font-black italic">Thank you for shopping at Bloomina!</p>
-                                <p className="text-[10px] mt-1 text-slate-400 font-black uppercase tracking-widest leading-none">OFFICIAL LOGISTICS - HANDLE WITH CARE</p>
+                                <p className="text-[10px] mt-1 text-black font-black uppercase tracking-widest leading-none">OFFICIAL LOGISTICS - HANDLE WITH CARE</p>
                             </div>
                         </div>
                     </div>
