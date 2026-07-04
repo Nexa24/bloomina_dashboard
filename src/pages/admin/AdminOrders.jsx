@@ -912,7 +912,8 @@ const AdminOrders = () => {
                                             onClick={async () => {
                                                 try {
                                                     setIsUpdatingTracking(true);
-                                                    const storefrontUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin;
+                                                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                                                    const storefrontUrl = isLocal ? 'http://localhost:3000' : 'https://www.bloomina.in';
                                                     const res = await fetch(`${storefrontUrl}/api/shiprocket/create-order`, {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
