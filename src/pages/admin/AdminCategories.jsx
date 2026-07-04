@@ -12,6 +12,7 @@ const INITIAL_FORM_STATE = {
     slug: '',
     image: '',
     display_on_home: true,
+    home_carousel: false,
     sort_order: 0,
     category_type: 'category',   // 'category' | 'subcategory' | 'universal'
     parent_id: ''
@@ -155,6 +156,7 @@ const AdminCategories = () => {
                 slug: category.slug || '',
                 image: category.image || '',
                 display_on_home: category.display_on_home ?? true,
+                home_carousel: category.home_carousel ?? false,
                 sort_order: category.sort_order || 0,
                 category_type: category.category_type || 'category',
                 parent_id: category.parent_id || ''
@@ -184,6 +186,7 @@ const AdminCategories = () => {
             showToast('Upload failed: ' + error.message, 'error');
         } finally {
             setUploadingImage(false);
+            event.target.value = ''; // Reset input to allow same/other files to upload subsequently
         }
     };
 
@@ -204,6 +207,7 @@ const AdminCategories = () => {
                 slug: finalSlug,
                 image: formData.image || null,
                 display_on_home: formData.display_on_home,
+                home_carousel: formData.home_carousel,
                 sort_order: parseInt(formData.sort_order) || 0,
                 category_type: formData.category_type,
                 parent_id: formData.category_type === 'subcategory' && formData.parent_id ? formData.parent_id : null
@@ -216,7 +220,7 @@ const AdminCategories = () => {
             if (error) {
                 // Fallback for missing columns (old schema)
                 if (error.code === '42703') {
-                    const safe = { name: payload.name, slug: payload.slug, image: payload.image, display_on_home: payload.display_on_home, sort_order: payload.sort_order };
+                    const safe = { name: payload.name, slug: payload.slug, image: payload.image, display_on_home: payload.display_on_home, home_carousel: payload.home_carousel, sort_order: payload.sort_order };
                     const { error: fe } = editingId
                         ? await supabase.from('categories').update(safe).eq('id', editingId)
                         : await supabase.from('categories').insert([safe]);
@@ -414,6 +418,7 @@ const AdminCategories = () => {
                                         <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Type</th>
                                         <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Parent</th>
                                         <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Home Display</th>
+                                        <th className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Home Carousel</th>
                                         <th className="px-6 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800 text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -460,6 +465,18 @@ const AdminCategories = () => {
                                                         } catch (err) { showToast('Toggle failed: ' + err.message, 'error'); }
                                                     }} className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 ${cat.display_on_home ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-slate-100 text-slate-400 dark:bg-slate-800'}`}>
                                                         {cat.display_on_home ? 'Visible' : 'Hidden'}
+                                                    </button>
+                                                </td>
+                                                <td className="px-4 py-3 align-middle">
+                                                    <button onClick={async () => {
+                                                        try {
+                                                            const newStatus = !cat.home_carousel;
+                                                            const { error } = await supabase.from('categories').update({ home_carousel: newStatus }).eq('id', cat.id);
+                                                            if (error) throw error;
+                                                            setCategories(cats => cats.map(c => c.id === cat.id ? { ...c, home_carousel: newStatus } : c));
+                                                        } catch (err) { showToast('Toggle failed: ' + err.message, 'error'); }
+                                                    }} className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 ${cat.home_carousel ? 'bg-[#944555]/10 text-[#944555] dark:bg-[#944555]/20' : 'bg-slate-100 text-slate-400 dark:bg-slate-800'}`}>
+                                                        {cat.home_carousel ? 'Carousel' : 'Off'}
                                                     </button>
                                                 </td>
                                                 <td className="px-6 py-3 align-middle text-right">
@@ -571,28 +588,39 @@ const AdminCategories = () => {
                                 )}
                             </div>
 
-                            {/* Visibility + Priority */}
-                            <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl">
-                                    <div>
-                                        <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Home Page</h4>
-                                        <p className="text-[10px] text-slate-500">Show as featured card</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" className="sr-only peer" checked={formData.display_on_home}
-                                            onChange={e => setFormData(prev => ({ ...prev, display_on_home: e.target.checked }))} />
-                                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#944555]"></div>
-                                    </label>
-                                </div>
-                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl">
-                                    <div>
-                                        <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Priority</h4>
-                                        <p className="text-[10px] text-slate-500">Lower = appears first</p>
-                                    </div>
-                                    <input type="number" name="sort_order" value={formData.sort_order} onChange={handleInputChange}
-                                        className="w-16 h-8 px-2 text-center text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-[#944555] focus:outline-none" />
-                                </div>
-                            </div>
+                             {/* Visibility + Priority */}
+                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl">
+                                     <div>
+                                         <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Home Page</h4>
+                                         <p className="text-[10px] text-slate-500">Show as featured</p>
+                                     </div>
+                                     <label className="relative inline-flex items-center cursor-pointer">
+                                         <input type="checkbox" className="sr-only peer" checked={formData.display_on_home}
+                                             onChange={e => setFormData(prev => ({ ...prev, display_on_home: e.target.checked }))} />
+                                         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#944555]"></div>
+                                     </label>
+                                 </div>
+                                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl">
+                                     <div>
+                                         <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Carousel</h4>
+                                         <p className="text-[10px] text-slate-500">Show in carousel</p>
+                                     </div>
+                                     <label className="relative inline-flex items-center cursor-pointer">
+                                         <input type="checkbox" className="sr-only peer" checked={formData.home_carousel}
+                                             onChange={e => setFormData(prev => ({ ...prev, home_carousel: e.target.checked }))} />
+                                         <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#944555]"></div>
+                                     </label>
+                                 </div>
+                                 <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl">
+                                     <div>
+                                         <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Priority</h4>
+                                         <p className="text-[10px] text-slate-500 font-medium">Lower = first</p>
+                                     </div>
+                                     <input type="number" name="sort_order" value={formData.sort_order} onChange={handleInputChange}
+                                         className="w-16 h-8 px-2 text-center text-sm font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-[#944555] focus:outline-none" />
+                                 </div>
+                             </div>
 
                             <div className="flex gap-3 flex-row-reverse pt-2 border-t border-slate-200 dark:border-slate-800">
                                 <button type="submit" disabled={isSubmitting}

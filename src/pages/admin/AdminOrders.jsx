@@ -22,7 +22,7 @@ const AdminOrders = () => {
     const [deliveryMethod, setDeliveryMethod] = useState('');
     const [trackingNumber, setTrackingNumber] = useState('');
     const [isUpdatingTracking, setIsUpdatingTracking] = useState(false);
-    const [selectedUpiId, setSelectedUpiId] = useState('alanovejennybazil@oksbi');
+    const [selectedUpiId, setSelectedUpiId] = useState(import.meta.env.VITE_UPI_ID || 'bloomina@okaxis');
     const [customUpiId, setCustomUpiId] = useState('');
     const [isAdminAlertOpen, setIsAdminAlertOpen] = useState(false);
     const [selectedOrderIds, setSelectedOrderIds] = useState([]);
@@ -795,8 +795,7 @@ const AdminOrders = () => {
                                         <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest ml-1">Select Receiving ID</p>
                                         <div className="grid grid-cols-2 gap-2">
                                             {[
-                                                { id: 'alanovejennybazil@oksbi', label: 'Alanove SBI' },
-                                                { id: 'nandhalalps2006@okicici', label: 'Nandhalal ICICI' },
+                                                { id: import.meta.env.VITE_UPI_ID || 'bloomina@okaxis', label: import.meta.env.VITE_UPI_NAME || 'Bloomina UPI' },
                                                 { id: 'custom', label: 'Custom ID' }
                                             ].map((opt) => (
                                                 <button
@@ -879,6 +878,76 @@ const AdminOrders = () => {
                                 <button onClick={handleUpdateTracking} className="w-full py-4 bg-[#944555] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#944555]/20 transition-all hover:bg-[#7d3a47] active:scale-95 disabled:opacity-75 disabled:scale-100" disabled={isUpdatingTracking}>
                                     {isUpdatingTracking ? 'Saving...' : 'Update Logistics Info'}
                                 </button>
+                            </div>
+
+                            {/* 🚀 Shiprocket Logistics */}
+                            <div className="bg-white dark:bg-[#15171e] p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-6">
+                                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase flex items-center gap-2">
+                                    <Truck className="w-4 h-4 text-[#944555]" /> Shiprocket Logistics
+                                </h3>
+                                
+                                {selectedOrder.shiprocket_order_id ? (
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <span className="block text-[9px] uppercase font-black text-slate-400">Order ID</span>
+                                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{selectedOrder.shiprocket_order_id}</span>
+                                            </div>
+                                            <div>
+                                                <span className="block text-[9px] uppercase font-black text-slate-400">Shipment ID</span>
+                                                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{selectedOrder.shiprocket_shipment_id || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span className="block text-[9px] uppercase font-black text-slate-400">Shipping Status</span>
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 mt-1">
+                                                {selectedOrder.shipping_status || 'Ready to Ship'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <p className="text-xs text-slate-500 font-medium">This order has not been synced to Shiprocket yet.</p>
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    setIsUpdatingTracking(true);
+                                                    const storefrontUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin;
+                                                    const res = await fetch(`${storefrontUrl}/api/shiprocket/create-order`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ orderId: selectedOrder.id })
+                                                    });
+                                                    const data = await res.json();
+                                                    if (!res.ok) throw new Error(data.error || 'Sync failed');
+                                                    
+                                                    setSelectedOrder(prev => ({
+                                                        ...prev,
+                                                        shiprocket_order_id: data.shiprocket_order_id,
+                                                        shiprocket_shipment_id: data.shiprocket_shipment_id,
+                                                        shipping_status: 'Ready to Ship'
+                                                    }));
+                                                    
+                                                    setOrders(prev => prev.map(o => o.id === selectedOrder.id ? {
+                                                        ...o,
+                                                        shiprocket_order_id: data.shiprocket_order_id,
+                                                        shiprocket_shipment_id: data.shipment_id,
+                                                        shipping_status: 'Ready to Ship'
+                                                    } : o));
+                                                    
+                                                    showAlert({ title: 'Success', message: 'Order successfully synced to Shiprocket!', type: 'success' });
+                                                } catch (err) {
+                                                    showAlert({ title: 'Sync Failed', message: err.message, type: 'danger' });
+                                                } finally {
+                                                    setIsUpdatingTracking(false);
+                                                }
+                                            }}
+                                            className="w-full py-4 bg-[#944555] hover:bg-[#7d3a47] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-[#944555]/20 transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <RefreshCw className="w-4 h-4" /> Push to Shiprocket
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">

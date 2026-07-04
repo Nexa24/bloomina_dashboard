@@ -1,8 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { Star, MessageSquare, CheckCircle2, Search, Filter, Trash2, Send, RefreshCw, ShoppingBag, User, ExternalLink } from 'lucide-react';
+import { Star, MessageSquare, CheckCircle2, Search, Filter, Trash2, Send, RefreshCw, ShoppingBag, User, ExternalLink, AlertCircle, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import UniversalDropdown from '../../components/admin/UniversalDropdown';
 import { useAlert } from '../../contexts/AlertContext';
+
+function parseReviewComment(comment) {
+  if (!comment) return { fabricRating: null, comfortRating: null, servicePackagingRating: null, cleanComment: '' };
+
+  const newMatch = comment.match(/^\[Fabric:\s*(\d)\/5,\s*Comfort:\s*(\d)\/5,\s*Service\s*&\s*Packaging:\s*(\d)\/5\]\s*([\s\S]*)$/);
+  if (newMatch) {
+    return {
+      fabricRating: parseInt(newMatch[1]),
+      comfortRating: parseInt(newMatch[2]),
+      servicePackagingRating: parseInt(newMatch[3]),
+      cleanComment: newMatch[4].trim()
+    };
+  }
+
+  const oldMatch = comment.match(/^\[Fabric:\s*(\d)\/5,\s*Comfort:\s*(\d)\/5,\s*Service:\s*(\d)\/5,\s*Package:\s*(\d)\/5\]\s*([\s\S]*)$/);
+  if (oldMatch) {
+    const serviceVal = parseInt(oldMatch[3]);
+    const packageVal = parseInt(oldMatch[4]);
+    return {
+      fabricRating: parseInt(oldMatch[1]),
+      comfortRating: parseInt(oldMatch[2]),
+      servicePackagingRating: Math.round((serviceVal + packageVal) / 2),
+      cleanComment: oldMatch[5].trim()
+    };
+  }
+
+  return {
+    fabricRating: null,
+    comfortRating: null,
+    servicePackagingRating: null,
+    cleanComment: comment
+  };
+}
 
 const AdminBrandReviews = () => {
     const { showAlert } = useAlert();
@@ -10,8 +43,14 @@ const AdminBrandReviews = () => {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all'); // all, product, brand
-    const [replyingTo, setReplyingTo] = useState(null);
     const [replyText, setReplyText] = useState('');
+    const [notification, setNotification] = useState(null);
+    const [togglingIds, setTogglingIds] = useState({});
+
+    const showToast = (message, type = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3500);
+    };
 
     useEffect(() => {
         fetchReviews();
@@ -88,6 +127,15 @@ const AdminBrandReviews = () => {
 
     return (
         <div className="flex flex-col h-full animate-fade-in-up">
+            {notification && (
+                <div className="fixed top-6 right-6 z-[9999] animate-fade-in-up flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl shadow-black/10 font-bold text-sm bg-white/90 dark:bg-[#1a1c23]/90 backdrop-blur-md border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white">
+                    {notification.type === 'success'
+                        ? <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0"><CheckCircle2 className="w-5 h-5" /></div>
+                        : <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-500/20 text-red-500 flex items-center justify-center shrink-0"><AlertCircle className="w-5 h-5" /></div>}
+                    <span className="max-w-xs">{notification.message}</span>
+                    <button onClick={() => setNotification(null)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition ml-2 text-slate-400"><X className="w-4 h-4" /></button>
+                </div>
+            )}
             <div data-tour="reviews-header" className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                 <div>
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Community Feedback</h1>
@@ -185,8 +233,10 @@ const AdminBrandReviews = () => {
                 </div>
             ) : (
                 <div data-tour="reviews-grid" className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredReviews.map((review) => (
-                        <div key={review.id} className="relative bg-white dark:bg-[#15171e] rounded-[32px] p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col hover:border-[#944555]/30 transition-all group hover:shadow-xl hover:shadow-[#944555]/5">
+                    {filteredReviews.map((review) => {
+                        const { fabricRating, comfortRating, servicePackagingRating, cleanComment } = parseReviewComment(review.comment);
+                        return (
+                            <div key={review.id} className="relative bg-white dark:bg-[#15171e] rounded-[32px] p-6 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col hover:border-[#944555]/30 transition-all group hover:shadow-xl hover:shadow-[#944555]/5">
                             
                             {/* Product Info Tag if exists */}
                             {review.products ? (
@@ -227,28 +277,82 @@ const AdminBrandReviews = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center shrink-0">
-                                    <UniversalDropdown 
-                                        value={review.status}
-                                        onChange={(val) => updateStatus(review.id, val)}
-                                        options={[
-                                            { value: 'pending', label: 'Pending' },
-                                            { value: 'approved', label: 'Approved' },
-                                            { value: 'rejected', label: 'Rejected' }
-                                        ]}
-                                    />
-                                </div>
-                            </div>
+                                 <div className="flex items-center shrink-0">
+                                     <UniversalDropdown 
+                                         value={review.status}
+                                         onChange={(val) => updateStatus(review.id, val)}
+                                         options={[
+                                             { value: 'pending', label: 'Pending' },
+                                             { value: 'approved', label: 'Approved' },
+                                             { value: 'rejected', label: 'Rejected' }
+                                         ]}
+                                     />
+                                 </div>
+                             </div>
 
-                            {/* Content */}
-                            <div className="flex-1 space-y-4">
-                                <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">
-                                    "{review.comment}"
-                                </p>
-                            </div>
+                             {/* Content */}
+                             <div className="flex-1 space-y-4">
+                                 {fabricRating !== null && (
+                                     <div className="grid grid-cols-3 gap-2 py-2 border-y border-slate-100 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-400">
+                                         <div>
+                                             <div className="text-slate-500">Fabric</div>
+                                             <div className="text-[#944555] font-black">{fabricRating}/5</div>
+                                         </div>
+                                         <div>
+                                             <div className="text-slate-500">Comfort</div>
+                                             <div className="text-[#944555] font-black">{comfortRating}/5</div>
+                                         </div>
+                                         <div>
+                                             <div className="text-slate-500">Service</div>
+                                             <div className="text-[#944555] font-black">{servicePackagingRating}/5</div>
+                                         </div>
+                                     </div>
+                                 )}
+                                 <p className="text-sm text-slate-700 dark:text-slate-300 italic leading-relaxed">
+                                     "{cleanComment}"
+                                 </p>
+                             </div>
 
-                            {/* Divider */}
-                            <hr className="my-5 border-slate-100 dark:border-slate-800" />
+                             {/* Testimonial Display Toggle Switch */}
+                             <div className="mt-4 flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/30 rounded-2xl border border-slate-100 dark:border-slate-800/50">
+                                 <div>
+                                     <h5 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Show in Testimonials</h5>
+                                     <p className="text-[10px] text-slate-500 font-medium">Display on homepage trail</p>
+                                 </div>
+                                 <label htmlFor={`toggle-${review.id}`} className="relative inline-flex items-center cursor-pointer">
+                                     <input 
+                                         id={`toggle-${review.id}`}
+                                         type="checkbox" 
+                                         className="sr-only peer" 
+                                         checked={review.show_on_home || false}
+                                         disabled={togglingIds[review.id] || false}
+                                         onChange={async (e) => {
+                                             if (togglingIds[review.id]) return;
+                                             const newStatus = e.target.checked;
+                                             
+                                             // Optimistic UI Update
+                                             setReviews(prev => prev.map(r => r.id === review.id ? { ...r, show_on_home: newStatus } : r));
+                                             setTogglingIds(prev => ({ ...prev, [review.id]: true }));
+                                             
+                                             try {
+                                                 const { error } = await supabase.from('reviews').update({ show_on_home: newStatus }).eq('id', review.id);
+                                                 if (error) throw error;
+                                                 showToast(newStatus ? 'Added to homepage testimonials!' : 'Removed from homepage testimonials.');
+                                             } catch (err) {
+                                                 // Rollback on failure
+                                                 setReviews(prev => prev.map(r => r.id === review.id ? { ...r, show_on_home: !newStatus } : r));
+                                                 showAlert({ title: 'Failed', message: 'Toggle failed: ' + err.message, type: 'danger' });
+                                             } finally {
+                                                 setTogglingIds(prev => ({ ...prev, [review.id]: false }));
+                                             }
+                                         }} 
+                                     />
+                                     <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#944555] peer-disabled:opacity-50"></div>
+                                 </label>
+                             </div>
+
+                             {/* Divider */}
+                             <hr className="my-5 border-slate-100 dark:border-slate-800" />
 
                             {/* Footer / Meta */}
                             <div className="mt-auto flex items-center justify-between">
@@ -268,7 +372,8 @@ const AdminBrandReviews = () => {
                             </div>
 
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
