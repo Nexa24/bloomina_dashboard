@@ -11,6 +11,7 @@ import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import { supabase } from '../../lib/supabase';
 import NotificationStack from './OrderNotificationToast';
+import { useAlert } from '../../contexts/AlertContext';
 
 const getGenericTour = (title) => [
     {
@@ -841,6 +842,28 @@ const AdminLayout = () => {
     const [popoverStyle, setPopoverStyle] = useState({ display: 'none' });
     const [highlightStyle, setHighlightStyle] = useState({ display: 'none' });
     const [arrowClass, setArrowClass] = useState('none');
+    const { showAlert } = useAlert();
+
+    useEffect(() => {
+        // Scheduled full reload: reloads the page every 1 minute
+        const reloadInterval = setInterval(() => {
+            // Check if the user is performing a function (e.g. adding, editing, or filling a form)
+            const hasCancelButton = Array.from(document.querySelectorAll('button'))
+                .some(btn => btn.textContent?.trim().toLowerCase() === 'cancel');
+            const hasActiveModal = document.querySelector('.backdrop-blur-sm, [class*="backdrop-blur"]') !== null;
+            const isWorking = hasCancelButton || hasActiveModal;
+
+            if (isWorking) {
+                console.log('[Watchdog] User is actively adding/editing. Skipping scheduled reload.');
+                return;
+            }
+
+            console.log('[Watchdog] 1-minute interval reached. Reloading page...');
+            window.location.reload();
+        }, 60 * 1000);
+
+        return () => clearInterval(reloadInterval);
+    }, []);
 
     const getPageTitle = () => {
         if (!sidebarSections) return 'Admin Portal';

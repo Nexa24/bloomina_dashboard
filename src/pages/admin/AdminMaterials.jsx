@@ -307,10 +307,9 @@ const AdminMaterials = () => {
                             <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest mb-1">Template Name *</label>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest mb-1">Template Name</label>
                                         <input
                                             type="text"
-                                            required
                                             name="name"
                                             value={formData.name}
                                             onChange={handleInputChange}
