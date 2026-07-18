@@ -913,7 +913,7 @@ const AdminOrders = () => {
                                                 try {
                                                     setIsUpdatingTracking(true);
                                                     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                                                    const storefrontUrl = isLocal ? 'http://localhost:3000' : 'https://www.bloomina.in';
+                                                    const storefrontUrl = isLocal ? 'http://localhost:3000' : 'https://bloomina.in';
                                                     const res = await fetch(`${storefrontUrl}/api/shiprocket/create-order`, {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
