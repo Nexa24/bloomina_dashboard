@@ -910,17 +910,42 @@ const AdminOrders = () => {
                                         <p className="text-xs text-slate-500 font-medium">This order has not been synced to Shiprocket yet.</p>
                                         <button 
                                             onClick={async () => {
+                                                console.log("=== Shiprocket Sync Diagnostics Start ===");
+                                                console.log("Selected Order:", selectedOrder);
                                                 try {
                                                     setIsUpdatingTracking(true);
                                                     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                                                     const storefrontUrl = isLocal ? 'http://localhost:3000' : 'https://www.bloomina.in';
-                                                    const res = await fetch(`${storefrontUrl}/api/shiprocket/create-order`, {
+                                                    const targetUrl = `${storefrontUrl}/api/shiprocket/create-order`;
+                                                    
+                                                    console.log("Is Local Environment:", isLocal);
+                                                    console.log("Target Sync API URL:", targetUrl);
+                                                    
+                                                    const res = await fetch(targetUrl, {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ orderId: selectedOrder.id })
+                                                    }).catch(fetchErr => {
+                                                        console.error("Network/CORS fetch error occurred:", fetchErr);
+                                                        throw new Error(`Network failure: ${fetchErr.message}. This is likely a CORS block, SSL redirect block, or domain resolution issue.`);
                                                     });
-                                                    const data = await res.json();
-                                                    if (!res.ok) throw new Error(data.error || 'Sync failed');
+
+                                                    console.log("HTTP Response Status:", res.status, res.statusText);
+                                                    
+                                                    const text = await res.text();
+                                                    console.log("Raw Server Response Text:", text);
+                                                    
+                                                    let data;
+                                                    try {
+                                                        data = JSON.parse(text);
+                                                    } catch (jsonErr) {
+                                                        console.error("Failed to parse response text as JSON:", jsonErr);
+                                                        throw new Error(`Invalid JSON response: ${text.substring(0, 150)}`);
+                                                    }
+                                                    
+                                                    console.log("Parsed Response Payload:", data);
+                                                    
+                                                    if (!res.ok) throw new Error(data.error || `Sync failed with status code ${res.status}`);
                                                     
                                                     setSelectedOrder(prev => ({
                                                         ...prev,
@@ -938,8 +963,11 @@ const AdminOrders = () => {
                                                     
                                                     showAlert({ title: 'Success', message: 'Order successfully synced to Shiprocket!', type: 'success' });
                                                 } catch (err) {
+                                                    console.error("=== Shiprocket Sync Diagnostics Error ===");
+                                                    console.error(err);
                                                     showAlert({ title: 'Sync Failed', message: err.message, type: 'danger' });
                                                 } finally {
+                                                    console.log("=== Shiprocket Sync Diagnostics End ===");
                                                     setIsUpdatingTracking(false);
                                                 }
                                             }}
