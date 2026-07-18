@@ -932,7 +932,7 @@ const AdminOrders = () => {
                                                     setOrders(prev => prev.map(o => o.id === selectedOrder.id ? {
                                                         ...o,
                                                         shiprocket_order_id: data.shiprocket_order_id,
-                                                        shiprocket_shipment_id: data.shipment_id,
+                                                        shiprocket_shipment_id: data.shiprocket_shipment_id,
                                                         shipping_status: 'Ready to Ship'
                                                     } : o));
                                                     
