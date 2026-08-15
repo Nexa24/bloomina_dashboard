@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Ticket, Search, Plus, Trash2, CheckCircle, Clock, X, Edit2, RefreshCw, Upload, Image as ImageIcon, Box } from 'lucide-react';
+import { Ticket, Search, Plus, Trash2, CheckCircle, Clock, X, Edit2, RefreshCw, Upload, Image as ImageIcon, Box, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAlert } from '../../contexts/AlertContext';
 
@@ -53,12 +53,19 @@ const AdminCoupons = () => {
     };
 
     const fetchProducts = async () => {
-        const { data, error } = await supabase
-            .from('products')
-            .select('id, title, price, images, category, color_configs, variants')
-            .order('created_at', { ascending: false });
-        if (!error && data) {
-            setAvailableProducts(data);
+        try {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .order('created_at', { ascending: false });
+            if (error) {
+                console.error('Error fetching products for coupons:', error);
+            }
+            if (data) {
+                setAvailableProducts(data);
+            }
+        } catch (err) {
+            console.error('Failed to load products:', err);
         }
     };
 
@@ -140,6 +147,7 @@ const AdminCoupons = () => {
                 expiry: '' 
             });
         }
+        setProductSearch('');
         setIsModalOpen(true);
     };
 
@@ -177,7 +185,7 @@ const AdminCoupons = () => {
             if (!error && data) {
                 setCoupons(prev => prev.map(c => c.id === editId ? data[0] : c));
                 setIsModalOpen(false);
-                showAlert({ title: 'Updated', message: 'Coupon successfully updated with premium precision.', type: 'success' });
+                showAlert({ title: 'Updated', message: 'Coupon offer successfully updated.', type: 'success' });
             } else {
                 console.error("Supabase Error:", error);
                 showAlert({ title: 'Update Failed', message: error?.message || 'Check for unique code constraint violation.', type: 'danger' });
@@ -187,7 +195,7 @@ const AdminCoupons = () => {
             if (!error && data) {
                 setCoupons([data[0], ...coupons]);
                 setIsModalOpen(false);
-                showAlert({ title: 'Created', message: 'New coupon launched successfully.', type: 'success' });
+                showAlert({ title: 'Created', message: 'New offer launched successfully.', type: 'success' });
             } else {
                 console.error("Supabase Error:", error);
                 showAlert({ title: 'Creation Failed', message: error?.message || 'Code might already exist.', type: 'danger' });
@@ -206,7 +214,7 @@ const AdminCoupons = () => {
     // Selected products for combo auto-loading preview
     const selectedComboProducts = availableProducts.filter(p => 
         (newCoupon.selected_product_ids || []).includes(p.id) ||
-        (newCoupon.applicable_products || '').toLowerCase().includes(p.title?.toLowerCase() || '')
+        (newCoupon.applicable_products || '').toLowerCase().includes((p.name || p.title || '').toLowerCase())
     );
 
     return (
@@ -217,11 +225,11 @@ const AdminCoupons = () => {
                     <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
                         <Ticket className="w-6 h-6 text-[#944555]" /> Coupon & Promo Offers Manager
                     </h1>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Configure BOGO, Combos, Percentage discounts, and specific product bundle offers.</p>
+                    <p className="text-xs text-slate-500 font-medium mt-1">Configure BOGO, Combos, Percentage discounts, and product bundle offers.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={fetchCoupons}
+                        onClick={() => { fetchCoupons(); fetchProducts(); }}
                         disabled={loading}
                         className="bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm disabled:opacity-50"
                     >
@@ -362,7 +370,7 @@ const AdminCoupons = () => {
                                     </select>
                                 </div>
 
-                                {/* Header Title (Optional for Combos) */}
+                                {/* Header Title (For Combos) */}
                                 {newCoupon.type === 'combo' && (
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Combo Header Title</label>
@@ -402,25 +410,35 @@ const AdminCoupons = () => {
 
                                             {/* Select Products for Combo (Auto-loads all details & photos) */}
                                             <div className="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-700">
-                                                <label className="block text-xs font-bold text-slate-500 uppercase">
-                                                    Select Products for Combo <span className="text-[#944555] lowercase">(images & specs auto-load from selected items)</span>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase flex items-center justify-between">
+                                                    <span>Select Products for Combo ({availableProducts.length} Available)</span>
+                                                    <span className="text-[#944555] lowercase font-normal">photos & specs auto-load</span>
                                                 </label>
                                                 
                                                 <div className="relative">
                                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                                     <input 
                                                         type="text" 
-                                                        placeholder="Search product to add to combo..." 
+                                                        placeholder="Type product name to filter list..." 
                                                         value={productSearch}
                                                         onChange={e => setProductSearch(e.target.value)}
                                                         className="w-full pl-9 pr-4 py-2.5 bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:outline-none dark:text-white"
                                                     />
                                                 </div>
 
-                                                {/* Search Results Dropdown */}
-                                                {productSearch.trim() && (
-                                                    <div className="max-h-36 overflow-y-auto bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-800 shadow-lg">
-                                                        {availableProducts.filter(p => p.title?.toLowerCase().includes(productSearch.toLowerCase())).map(prod => {
+                                                {/* Scrollable Products List */}
+                                                <div className="max-h-48 overflow-y-auto bg-white dark:bg-[#1a1c23] border border-slate-200 dark:border-slate-700 rounded-xl divide-y divide-slate-100 dark:divide-slate-800 shadow-inner">
+                                                    {availableProducts.length === 0 ? (
+                                                        <p className="p-4 text-xs text-center text-slate-400">Loading products database...</p>
+                                                    ) : (
+                                                        availableProducts.filter(p => {
+                                                            const nameStr = (p.name || p.title || '').toLowerCase();
+                                                            const catStr = (p.category || '').toLowerCase();
+                                                            const searchLow = productSearch.toLowerCase().trim();
+                                                            return nameStr.includes(searchLow) || catStr.includes(searchLow);
+                                                        }).map(prod => {
+                                                            const prodName = prod.name || prod.title || 'Product';
+                                                            const prodImg = (Array.isArray(prod.images) && prod.images[0]) ? prod.images[0] : (prod.image || '');
                                                             const isSelected = (newCoupon.selected_product_ids || []).includes(prod.id);
                                                             return (
                                                                 <div 
@@ -428,45 +446,64 @@ const AdminCoupons = () => {
                                                                     onClick={() => {
                                                                         const prevIds = newCoupon.selected_product_ids || [];
                                                                         const nextIds = isSelected ? prevIds.filter(id => id !== prod.id) : [...prevIds, prod.id];
-                                                                        const nextTitles = availableProducts.filter(p => nextIds.includes(p.id)).map(p => p.title).join(', ');
+                                                                        const selectedObjs = availableProducts.filter(p => nextIds.includes(p.id));
+                                                                        const nextTitles = selectedObjs.map(p => p.name || p.title).join(', ');
+                                                                        const autoCover = selectedObjs[0]?.images?.[0] || selectedObjs[0]?.image || newCoupon.banner_image || '';
                                                                         setNewCoupon({
                                                                             ...newCoupon,
                                                                             selected_product_ids: nextIds,
                                                                             applicable_products: nextTitles,
-                                                                            banner_image: newCoupon.banner_image || prod.images?.[0] || ''
+                                                                            banner_image: autoCover
                                                                         });
                                                                     }}
                                                                     className={`p-2.5 flex items-center justify-between cursor-pointer text-xs font-bold transition-colors ${isSelected ? 'bg-pink-50 dark:bg-pink-900/20 text-[#944555]' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200'}`}
                                                                 >
-                                                                    <div className="flex items-center gap-2 truncate">
-                                                                        <img src={prod.images?.[0] || ''} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
-                                                                        <span className="truncate">{prod.title} (₹{prod.price})</span>
+                                                                    <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                                                                        {prodImg ? (
+                                                                            <img src={prodImg} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0 border border-slate-200" />
+                                                                        ) : (
+                                                                            <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">📦</div>
+                                                                        )}
+                                                                        <div className="truncate">
+                                                                            <p className="truncate text-xs font-black">{prodName}</p>
+                                                                            <p className="text-[10px] text-slate-400">₹{prod.price} • {prod.category || 'Apparel'}</p>
+                                                                        </div>
                                                                     </div>
-                                                                    <span className="text-[10px] uppercase font-black">{isSelected ? '✓ Added' : '+ Add'}</span>
+                                                                    <span className={`text-[10px] uppercase font-black px-2 py-1 rounded-md shrink-0 ${isSelected ? 'bg-[#944555] text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
+                                                                        {isSelected ? '✓ Added' : '+ Add'}
+                                                                    </span>
                                                                 </div>
                                                             );
-                                                        })}
-                                                    </div>
-                                                )}
+                                                        })
+                                                    )}
+                                                </div>
 
                                                 {/* Auto-Loaded Selected Products Preview Cards */}
                                                 {selectedComboProducts.length > 0 && (
-                                                    <div className="space-y-2 mt-2">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase">Auto-Loaded Products in Combo:</span>
+                                                    <div className="space-y-2 mt-3 pt-2 border-t border-slate-200 dark:border-slate-700">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase">Auto-Loaded Selected Products:</span>
                                                         <div className="grid grid-cols-2 gap-2">
-                                                            {selectedComboProducts.map(p => (
-                                                                <div key={p.id} className="p-2.5 bg-white dark:bg-[#15171e] rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2">
-                                                                    <img src={p.images?.[0] || ''} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 border" />
-                                                                    <div className="min-w-0 flex-1">
-                                                                        <p className="text-xs font-black text-slate-800 dark:text-white truncate">{p.title}</p>
-                                                                        <p className="text-[10px] font-bold text-[#944555]">Original: ₹{p.price}</p>
+                                                            {selectedComboProducts.map(p => {
+                                                                const pName = p.name || p.title || 'Product';
+                                                                const pImg = (Array.isArray(p.images) && p.images[0]) ? p.images[0] : (p.image || '');
+                                                                return (
+                                                                    <div key={p.id} className="p-2.5 bg-white dark:bg-[#15171e] rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                                                                        {pImg ? (
+                                                                            <img src={pImg} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0 border" />
+                                                                        ) : (
+                                                                            <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center shrink-0">📦</div>
+                                                                        )}
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <p className="text-xs font-black text-slate-800 dark:text-white truncate">{pName}</p>
+                                                                            <p className="text-[10px] font-bold text-[#944555]">Original: ₹{p.price}</p>
+                                                                        </div>
+                                                                        <button type="button" onClick={() => {
+                                                                            const nextIds = (newCoupon.selected_product_ids || []).filter(id => id !== p.id);
+                                                                            setNewCoupon({...newCoupon, selected_product_ids: nextIds});
+                                                                        }} className="text-slate-400 hover:text-red-500 p-1"><X className="w-3.5 h-3.5" /></button>
                                                                     </div>
-                                                                    <button type="button" onClick={() => {
-                                                                        const nextIds = (newCoupon.selected_product_ids || []).filter(id => id !== p.id);
-                                                                        setNewCoupon({...newCoupon, selected_product_ids: nextIds});
-                                                                    }} className="text-slate-400 hover:text-red-500 p-1"><X className="w-3.5 h-3.5" /></button>
-                                                                </div>
-                                                            ))}
+                                                                );
+                                                            })}
                                                         </div>
                                                     </div>
                                                 )}
@@ -498,7 +535,7 @@ const AdminCoupons = () => {
                                         </div>
                                     )}
 
-                                    {/* Applicable Category & Specific Products Filters */}
+                                    {/* Applicable Category Filter */}
                                     <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-700">
                                         <div>
                                             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Applicable Category Filter</label>
@@ -520,14 +557,14 @@ const AdminCoupons = () => {
                                     <div className="flex items-center gap-3">
                                         <input 
                                             type="text" 
-                                            placeholder="Image URL or upload banner photo below..."
+                                            placeholder="Image URL or upload cover photo below..."
                                             value={newCoupon.banner_image || ''} 
                                             onChange={e => setNewCoupon({...newCoupon, banner_image: e.target.value})}
                                             className="flex-1 p-3 bg-slate-50 dark:bg-[#0f111a] border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none text-xs font-medium text-slate-900 dark:text-white" 
                                         />
                                         <label className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-4 py-3 rounded-xl font-bold text-xs cursor-pointer transition-colors shrink-0 flex items-center gap-1.5 border border-slate-200 dark:border-slate-700">
                                             <Upload className="w-4 h-4" />
-                                            <span>{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
+                                            <span>{uploadingImage ? 'Uploading...' : 'Upload Cover'}</span>
                                             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploadingImage} />
                                         </label>
                                     </div>
