@@ -391,8 +391,20 @@ const AdminProducts = () => {
     };
 
     const handleEditProduct = (product) => {
+        const specs = product.specifications || [];
+        const isComboSpec = specs.find(s => s.name === 'is_combo')?.value === 'true' || product.is_combo;
+        const bundleIdsSpec = specs.find(s => s.name === 'bundled_product_ids')?.value;
+        let parsedBundleIds = [];
+        if (bundleIdsSpec) {
+            try { parsedBundleIds = JSON.parse(bundleIdsSpec); } catch (e) {}
+        } else if (Array.isArray(product.bundled_product_ids)) {
+            parsedBundleIds = product.bundled_product_ids;
+        }
+
         setFormData({
             ...product,
+            is_combo: Boolean(isComboSpec),
+            bundled_product_ids: parsedBundleIds,
             description: product.description || '',
             comparePrice: product.comparePrice || '',
             barcode: product.barcode || '',
@@ -402,6 +414,7 @@ const AdminProducts = () => {
             variants: product.variants || [],
             specifications: product.specifications || [],
             images: product.images || [],
+            colorConfigs: product.color_configs || product.colorConfigs || [],
             categories: product.categories || (product.category ? [product.category] : []),
             isSale: product.is_sale || (Array.isArray(product.categories) && product.categories.includes('Sale%')) || false,
             material_id: product.material_id || null,
@@ -702,7 +715,18 @@ const AdminProducts = () => {
         let cleanCategories = normalizeAndSyncCategories(formData.categories, formData.isSale);
 
         // Ensure IDs are valid UUIDs or null
-        const isValidUUID = (id) => id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+        // Filter out any previous combo specs and append current combo info safely into specifications array
+        const baseSpecs = (formData.specifications || []).filter(s => 
+            s.name !== 'is_combo' && s.name !== 'bundled_product_ids' && s.name !== 'combo_type'
+        );
+
+        if (formData.is_combo) {
+            baseSpecs.push(
+                { name: 'is_combo', value: 'true' },
+                { name: 'bundled_product_ids', value: JSON.stringify(formData.bundled_product_ids || []) },
+                { name: 'combo_type', value: 'bra_panty' }
+            );
+        }
 
         const payload = {
             name: formData.name,
@@ -713,15 +737,13 @@ const AdminProducts = () => {
             comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
             cost: parseFloat(formData.cost) || 0,
             is_sale: Boolean(formData.isSale),
-            is_combo: Boolean(formData.is_combo),
-            bundled_product_ids: formData.bundled_product_ids || [],
             sku: formData.sku || `SKU-${Date.now()}`,
             barcode: formData.barcode || '',
             trackQuantity: Boolean(formData.trackQuantity),
             stock: parseInt(formData.stock) || 0,
             supplierRef: formData.supplierRef || '',
             variants: formData.variants || [],
-            specifications: formData.specifications || [],
+            specifications: baseSpecs,
             images: formData.images || [],
             colorConfigs: formData.colorConfigs || [],
             material_id: isValidUUID(formData.material_id) ? formData.material_id : null,
