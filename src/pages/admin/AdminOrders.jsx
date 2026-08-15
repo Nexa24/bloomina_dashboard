@@ -1045,6 +1045,12 @@ const AdminOrders = () => {
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-black text-slate-800 dark:text-white truncate">{item.title || item.name || 'Lovely Product'}</p>
+                                                {(item.size || item.selectedSize || item.color || item.selectedColor) && (
+                                                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-[#944555] uppercase my-0.5">
+                                                        {(item.size || item.selectedSize) && <span className="bg-[#944555]/10 px-2 py-0.5 rounded-md">Size: {item.size || item.selectedSize}</span>}
+                                                        {(item.color || item.selectedColor) && <span className="bg-[#944555]/10 px-2 py-0.5 rounded-md">Color: {item.color || item.selectedColor}</span>}
+                                                    </div>
+                                                )}
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Qty: {item.quantity || 1} × ₹{item.price || 0}</p>
                                             </div>
                                             <p className="font-black text-slate-900 dark:text-white">₹{(item.price || 0) * (item.quantity || 1)}</p>
