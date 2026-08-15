@@ -19,6 +19,7 @@ const AdminOrders = () => {
 
     // Modal & tracking state
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [previewProduct, setPreviewProduct] = useState(null);
     const [deliveryMethod, setDeliveryMethod] = useState('');
     const [trackingNumber, setTrackingNumber] = useState('');
     const [isUpdatingTracking, setIsUpdatingTracking] = useState(false);
@@ -26,6 +27,22 @@ const AdminOrders = () => {
     const [customUpiId, setCustomUpiId] = useState('');
     const [isAdminAlertOpen, setIsAdminAlertOpen] = useState(false);
     const [selectedOrderIds, setSelectedOrderIds] = useState([]);
+
+    const getColorHex = (name) => {
+        if (!name) return '#944555';
+        const low = name.toLowerCase().trim();
+        if (low.includes('black')) return '#1a1a1a';
+        if (low.includes('white')) return '#ffffff';
+        if (low.includes('nude') || low.includes('skin') || low.includes('beige')) return '#e8c5b0';
+        if (low.includes('pink') || low.includes('rose')) return '#f191a1';
+        if (low.includes('red') || low.includes('maroon') || low.includes('wine')) return '#800020';
+        if (low.includes('navy') || low.includes('blue')) return '#1b2a4a';
+        if (low.includes('grey') || low.includes('gray')) return '#707070';
+        if (low.includes('purple') || low.includes('lavender')) return '#967bb6';
+        if (low.includes('green')) return '#2e8b57';
+        if (low.includes('yellow') || low.includes('gold')) return '#d4af37';
+        return '#944555';
+    };
 
     // Create Manual Order Modal States
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -910,17 +927,42 @@ const AdminOrders = () => {
                                         <p className="text-xs text-slate-500 font-medium">This order has not been synced to Shiprocket yet.</p>
                                         <button 
                                             onClick={async () => {
+                                                console.log("=== Shiprocket Sync Diagnostics Start ===");
+                                                console.log("Selected Order:", selectedOrder);
                                                 try {
                                                     setIsUpdatingTracking(true);
                                                     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                                                     const storefrontUrl = isLocal ? 'http://localhost:3000' : 'https://www.bloomina.in';
-                                                    const res = await fetch(`${storefrontUrl}/api/shiprocket/create-order`, {
+                                                    const targetUrl = `${storefrontUrl}/api/shiprocket/create-order`;
+                                                    
+                                                    console.log("Is Local Environment:", isLocal);
+                                                    console.log("Target Sync API URL:", targetUrl);
+                                                    
+                                                    const res = await fetch(targetUrl, {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ orderId: selectedOrder.id })
+                                                    }).catch(fetchErr => {
+                                                        console.error("Network/CORS fetch error occurred:", fetchErr);
+                                                        throw new Error(`Network failure: ${fetchErr.message}. This is likely a CORS block, SSL redirect block, or domain resolution issue.`);
                                                     });
-                                                    const data = await res.json();
-                                                    if (!res.ok) throw new Error(data.error || 'Sync failed');
+
+                                                    console.log("HTTP Response Status:", res.status, res.statusText);
+                                                    
+                                                    const text = await res.text();
+                                                    console.log("Raw Server Response Text:", text);
+                                                    
+                                                    let data;
+                                                    try {
+                                                        data = JSON.parse(text);
+                                                    } catch (jsonErr) {
+                                                        console.error("Failed to parse response text as JSON:", jsonErr);
+                                                        throw new Error(`Invalid JSON response: ${text.substring(0, 150)}`);
+                                                    }
+                                                    
+                                                    console.log("Parsed Response Payload:", data);
+                                                    
+                                                    if (!res.ok) throw new Error(data.error || `Sync failed with status code ${res.status}`);
                                                     
                                                     setSelectedOrder(prev => ({
                                                         ...prev,
@@ -938,8 +980,11 @@ const AdminOrders = () => {
                                                     
                                                     showAlert({ title: 'Success', message: 'Order successfully synced to Shiprocket!', type: 'success' });
                                                 } catch (err) {
+                                                    console.error("=== Shiprocket Sync Diagnostics Error ===");
+                                                    console.error(err);
                                                     showAlert({ title: 'Sync Failed', message: err.message, type: 'danger' });
                                                 } finally {
+                                                    console.log("=== Shiprocket Sync Diagnostics End ===");
                                                     setIsUpdatingTracking(false);
                                                 }
                                             }}
@@ -1009,21 +1054,117 @@ const AdminOrders = () => {
                                 <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase flex items-center gap-2">
                                     <ShoppingBag className="w-4 h-4 text-slate-400" /> Purchased Items
                                 </h3>
-                                <div className="space-y-3">
-                                    {(selectedOrder.items || []).map((item, i) => (
-                                        <div key={i} className="flex items-center gap-4 bg-slate-50/50 dark:bg-slate-800/20 p-4 rounded-2xl border border-slate-50 dark:border-slate-800">
-                                            <div className="w-16 h-16 bg-white dark:bg-[#0f111a] rounded-xl flex items-center justify-center p-2 border border-slate-100 dark:border-slate-800 overflow-hidden shrink-0 text-2xl">
-                                                {item.image ? <img src={item.image} alt="" className="w-full h-full object-contain" /> : '📦'}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-black text-slate-800 dark:text-white truncate">{item.title || item.name || 'Lovely Product'}</p>
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Qty: {item.quantity || 1} × ₹{item.price || 0}</p>
-                                            </div>
-                                            <p className="font-black text-slate-900 dark:text-white">₹{(item.price || 0) * (item.quantity || 1)}</p>
-                                        </div>
-                                    ))}
+                                 <div className="space-y-3">
+                                     {(selectedOrder.items || []).map((item, i) => {
+                                         const itemSize = item.size || item.selectedSize;
+                                         const itemColor = item.color || item.selectedColor;
+                                         const hex = getColorHex(itemColor);
+                                         return (
+                                             <div 
+                                                 key={i} 
+                                                 onClick={() => setPreviewProduct(item)}
+                                                 title="Click to view product details"
+                                                 className="flex items-center gap-4 bg-slate-50/80 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-[#944555] cursor-pointer transition-all hover:shadow-md group"
+                                             >
+                                                 <div className="w-16 h-16 bg-white dark:bg-[#0f111a] rounded-xl flex items-center justify-center p-2 border border-slate-100 dark:border-slate-800 overflow-hidden shrink-0 text-2xl relative">
+                                                     {item.image ? <img src={item.image} alt="" className="w-full h-full object-contain group-hover:scale-105 transition-transform" /> : '📦'}
+                                                 </div>
+                                                 <div className="flex-1 min-w-0">
+                                                     <div className="flex items-center gap-2">
+                                                         <p className="text-sm font-black text-slate-800 dark:text-white truncate group-hover:text-[#944555] transition-colors">
+                                                             {item.title || item.name || 'Lovely Product'}
+                                                         </p>
+                                                         <ExternalLink className="w-3.5 h-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                                                     </div>
+                                                     {(itemSize || itemColor) && (
+                                                         <div className="flex flex-wrap items-center gap-2 text-[10px] font-extrabold uppercase my-1">
+                                                             {itemSize && (
+                                                                 <span className="bg-slate-200/70 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200 px-2.5 py-0.5 rounded-md border border-slate-300/50 dark:border-slate-700 font-black">
+                                                                     SIZE: {itemSize}
+                                                                 </span>
+                                                             )}
+                                                             {itemColor && (
+                                                                 <span className="bg-[#944555]/15 text-[#944555] dark:text-pink-300 px-2.5 py-0.5 rounded-md border border-[#944555]/30 flex items-center gap-1.5 font-black">
+                                                                     <span className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 shadow-sm" style={{ backgroundColor: hex }} />
+                                                                     <span>COLOR: {itemColor}</span>
+                                                                 </span>
+                                                             )}
+                                                         </div>
+                                                     )}
+                                                     <p className="text-[10px] font-bold text-slate-400 uppercase">Qty: {item.quantity || 1} × ₹{item.price || 0}</p>
+                                                 </div>
+                                                 <div className="text-right">
+                                                     <p className="font-black text-slate-900 dark:text-white text-base">₹{(item.price || 0) * (item.quantity || 1)}</p>
+                                                     <span className="text-[9px] font-bold text-[#944555] opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider">Click to View</span>
+                                                 </div>
+                                             </div>
+                                         );
+                                     })}
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             )}
+
+            {/* Product Preview Modal */}
+            {previewProduct && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm animate-fade-in" onClick={() => setPreviewProduct(null)}></div>
+                    <div className="relative bg-white dark:bg-[#1a1c23] rounded-3xl w-full max-w-lg shadow-2xl border border-slate-100 dark:border-slate-800 p-6 animate-scale-in space-y-6">
+                        <div className="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-4">
+                            <div>
+                                <span className="text-[10px] font-black text-[#944555] uppercase tracking-widest bg-[#944555]/10 px-2.5 py-1 rounded-md">Order Item Details</span>
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mt-2">{previewProduct.title || previewProduct.name}</h3>
+                            </div>
+                            <button onClick={() => setPreviewProduct(null)} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                                <XCircle className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="flex items-center gap-6 bg-slate-50 dark:bg-[#0f111a] p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                            <div className="w-24 h-24 bg-white dark:bg-[#15171e] rounded-xl flex items-center justify-center p-2 border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0">
+                                {previewProduct.image ? <img src={previewProduct.image} alt="" className="w-full h-full object-contain" /> : '📦'}
+                            </div>
+                            <div className="space-y-2 flex-1">
+                                <p className="text-2xl font-black text-[#944555]">₹{previewProduct.price || 0}</p>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Selected Quantity: {previewProduct.quantity || 1}</p>
+                                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Total Subtotal: ₹{(previewProduct.price || 0) * (previewProduct.quantity || 1)}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Ordered Variant Specifications</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase">Size Variant</span>
+                                    <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{previewProduct.size || previewProduct.selectedSize || 'Standard / Free Size'}</p>
+                                </div>
+                                <div className="p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase">Color Variant</span>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="w-3.5 h-3.5 rounded-full border border-black/20 shadow-sm shrink-0" style={{ backgroundColor: getColorHex(previewProduct.color || previewProduct.selectedColor) }} />
+                                        <p className="text-sm font-black text-slate-800 dark:text-white uppercase">{previewProduct.color || previewProduct.selectedColor || 'Default'}</p>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="pt-2 flex gap-3">
+                            <a 
+                                href={`https://bloomina.in/product/${previewProduct.productId || previewProduct.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 bg-[#944555] hover:bg-[#7d3a47] text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#944555]/20"
+                            >
+                                <ExternalLink className="w-4 h-4" /> View On Storefront
+                            </a>
+                            <button 
+                                onClick={() => setPreviewProduct(null)}
+                                className="px-5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>
