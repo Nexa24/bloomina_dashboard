@@ -1040,24 +1040,36 @@ const AdminProducts = () => {
                                                             const nextIds = isSelected ? prevIds.filter(id => id !== p.id) : [...prevIds, p.id];
                                                             const selectedObjs = products.filter(item => nextIds.includes(item.id));
                                                             
-                                                            // Auto-combine color configs and photos from selected products!
-                                                            const autoColorConfigs = [];
-                                                            const autoImages = [...(formData.images || [])];
+                                                            // Auto-combine all product photos from all color variants of selected products!
+                                                            const extractedImages = [];
+                                                            const extractedColorConfigs = [];
                                                             
                                                             selectedObjs.forEach(item => {
-                                                                if (Array.isArray(item.color_configs)) {
-                                                                    autoColorConfigs.push(...item.color_configs);
-                                                                }
                                                                 if (Array.isArray(item.images)) {
-                                                                    autoImages.push(...item.images);
+                                                                    item.images.forEach(img => { if (img) extractedImages.push(img); });
+                                                                }
+                                                                if (item.image) extractedImages.push(item.image);
+
+                                                                const configs = item.color_configs || item.colorConfigs || [];
+                                                                if (Array.isArray(configs)) {
+                                                                    configs.forEach(c => {
+                                                                        if (c) {
+                                                                            extractedColorConfigs.push(c);
+                                                                            if (Array.isArray(c.images)) {
+                                                                                c.images.forEach(img => { if (img) extractedImages.push(img); });
+                                                                            }
+                                                                        }
+                                                                    });
                                                                 }
                                                             });
+
+                                                            const finalImages = Array.from(new Set(extractedImages)).filter(Boolean);
 
                                                             setFormData(prev => ({
                                                                 ...prev,
                                                                 bundled_product_ids: nextIds,
-                                                                colorConfigs: autoColorConfigs,
-                                                                images: Array.from(new Set(autoImages)).filter(Boolean)
+                                                                colorConfigs: extractedColorConfigs,
+                                                                images: finalImages
                                                             }));
                                                         }}
                                                         className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'bg-pink-50 dark:bg-pink-900/20 border-[#944555]' : 'bg-slate-50/70 dark:bg-slate-800/30 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100'}`}
