@@ -1537,7 +1537,9 @@ const AdminProducts = () => {
                                             const isPanty = formData.categories?.some(c => c.toLowerCase().includes('pant') || c.toLowerCase().includes('brief'));
                                             
                                             let defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
-                                            if (isBra) {
+                                            if (isBra && isPanty) {
+                                                defaultSizes = ['32B', '32C', '34B', '34C', '34D', '36B', '36C', '36D', '38B', '38C', '40B', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+                                            } else if (isBra) {
                                                 defaultSizes = ['32B', '32C', '34B', '34C', '34D', '36B', '36C', '36D', '38B', '38C', '38D', '40B', '40C', '40D'];
                                             } else if (isPanty) {
                                                 defaultSizes = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'];
@@ -1824,9 +1826,10 @@ const AdminProducts = () => {
                                                                 const thisSubs = cat.subs.map(s => s.name);
                                                                 next = next.filter(c => c !== cat.name && !thisSubs.includes(c));
                                                             } else {
-                                                                // Remove any other main category if switching (single-main rule)
-                                                                next = next.filter(c => !allMainNames.includes(c) && !allSubNames.includes(c));
-                                                                next.push(cat.name);
+                                                                // Allow selecting multiple main categories together (e.g. both BRAS and PANTIES for set/combo)
+                                                                if (!next.includes(cat.name)) {
+                                                                    next.push(cat.name);
+                                                                }
                                                             }
                                                             setFormData({ ...formData, categories: next });
                                                         }}
