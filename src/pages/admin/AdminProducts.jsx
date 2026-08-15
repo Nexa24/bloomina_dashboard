@@ -713,6 +713,8 @@ const AdminProducts = () => {
             comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
             cost: parseFloat(formData.cost) || 0,
             is_sale: Boolean(formData.isSale),
+            is_combo: Boolean(formData.is_combo),
+            bundled_product_ids: formData.bundled_product_ids || [],
             sku: formData.sku || `SKU-${Date.now()}`,
             barcode: formData.barcode || '',
             trackQuantity: Boolean(formData.trackQuantity),
@@ -987,6 +989,120 @@ const AdminProducts = () => {
                                     ></textarea>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Combo Product Bundle Configurator Card */}
+                        <div className="bg-gradient-to-br from-pink-50/70 to-rose-50/40 dark:from-[#1a1c23] dark:to-[#15171e] rounded-[24px] p-6 shadow-sm border border-pink-200/80 dark:border-slate-800 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-slate-900 dark:text-white font-black text-lg flex items-center gap-2">
+                                        <Box className="w-5 h-5 text-[#944555]" /> Combo Product Bundle Configurator
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-bold mt-0.5">
+                                        Create a Combo Product set by selecting existing products. Set Title, Price, Cover Image & Description — all variant photos, colors & sizes auto-load from selected items!
+                                    </p>
+                                </div>
+                                <label className="flex items-center gap-2 bg-white dark:bg-[#0f111a] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer shadow-sm shrink-0">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={Boolean(formData.is_combo)}
+                                        onChange={(e) => {
+                                            const isCombo = e.target.checked;
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                is_combo: isCombo,
+                                                categories: isCombo ? Array.from(new Set([...(prev.categories || []), 'Combo Packs'])) : prev.categories
+                                            }));
+                                        }}
+                                        className="w-4 h-4 text-[#944555] rounded border-slate-300" 
+                                    />
+                                    <span className="text-xs font-black uppercase text-slate-900 dark:text-white">Enable Combo Mode</span>
+                                </label>
+                            </div>
+
+                            {formData.is_combo && (
+                                <div className="space-y-4 pt-3 border-t border-pink-200/60 dark:border-slate-800">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase flex items-center justify-between">
+                                            <span>Select Products Included in this Combo</span>
+                                            <span className="text-[#944555] lowercase font-bold">({products.length} products available)</span>
+                                        </label>
+                                        
+                                        {/* Scrollable Products Picker */}
+                                        <div className="max-h-56 overflow-y-auto bg-white dark:bg-[#0f111a] rounded-2xl border border-slate-200 dark:border-slate-800 p-2 space-y-1.5 shadow-inner">
+                                            {products.map(p => {
+                                                const isSelected = (formData.bundled_product_ids || []).includes(p.id);
+                                                return (
+                                                    <div 
+                                                        key={p.id}
+                                                        onClick={() => {
+                                                            const prevIds = formData.bundled_product_ids || [];
+                                                            const nextIds = isSelected ? prevIds.filter(id => id !== p.id) : [...prevIds, p.id];
+                                                            const selectedObjs = products.filter(item => nextIds.includes(item.id));
+                                                            
+                                                            // Auto-combine color configs and photos from selected products!
+                                                            const autoColorConfigs = [];
+                                                            const autoImages = [...(formData.images || [])];
+                                                            
+                                                            selectedObjs.forEach(item => {
+                                                                if (Array.isArray(item.color_configs)) {
+                                                                    autoColorConfigs.push(...item.color_configs);
+                                                                }
+                                                                if (Array.isArray(item.images)) {
+                                                                    autoImages.push(...item.images);
+                                                                }
+                                                            });
+
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                bundled_product_ids: nextIds,
+                                                                colorConfigs: autoColorConfigs,
+                                                                images: Array.from(new Set(autoImages)).filter(Boolean)
+                                                            }));
+                                                        }}
+                                                        className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected ? 'bg-pink-50 dark:bg-pink-900/20 border-[#944555]' : 'bg-slate-50/70 dark:bg-slate-800/30 border-slate-200/80 dark:border-slate-800 hover:bg-slate-100'}`}
+                                                    >
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            {p.images?.[0] ? (
+                                                                <img src={p.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover border border-slate-200 shrink-0" />
+                                                            ) : (
+                                                                <div className="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center text-xs shrink-0">📦</div>
+                                                            )}
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-black text-slate-900 dark:text-white truncate">{p.name}</p>
+                                                                <p className="text-[10px] font-bold text-slate-500">₹{p.price} • {p.categories?.[0] || 'Apparel'}</p>
+                                                            </div>
+                                                        </div>
+                                                        <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shrink-0 ${isSelected ? 'bg-[#944555] text-white' : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200'}`}>
+                                                            {isSelected ? '✓ Bundled' : '+ Select'}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Selected Bundled Items Auto-Loaded Summary */}
+                                    {(formData.bundled_product_ids || []).length > 0 && (
+                                        <div className="p-3.5 bg-white dark:bg-[#0f111a] rounded-2xl border border-pink-200/80 dark:border-slate-800 space-y-2">
+                                            <p className="text-xs font-black text-[#944555] uppercase tracking-wider">
+                                                ✨ Auto-Loaded Products in Combo: ({formData.bundled_product_ids.length} items)
+                                            </p>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {products.filter(p => formData.bundled_product_ids.includes(p.id)).map(p => (
+                                                    <div key={p.id} className="p-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-2">
+                                                        <img src={p.images?.[0] || ''} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-[11px] font-black text-slate-800 dark:text-white truncate">{p.name}</p>
+                                                            <p className="text-[9px] font-bold text-[#944555]">Original: ₹{p.price}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Material Selection Section */}
