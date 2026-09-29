@@ -129,7 +129,7 @@ const SpecLabelInput = ({ value, onChange, suggestions = [] }) => {
 // Form Template - Moved outside to ensure it's a true constant
 const initialForm = {
     name: '', description: '', categories: [], status: 'Active',
-    price: '', comparePrice: '', cost: '', isSale: false,
+    price: '', comparePrice: '', cost: '', isSale: false, isBogo: false,
     sku: '', barcode: '', trackQuantity: true, stock: '', supplierRef: '',
     hasVariants: true, variants: [], specifications: [], images: [],
     colorConfigs: [], material_id: null, size_guide_id: null
@@ -169,8 +169,8 @@ const AdminProducts = () => {
     const categoryMap = Object.fromEntries(
         categoryHierarchy.categories.map(c => [c.name, c.subs.map(s => s.name)])
     );
-    // Category Normalization and Sale Synchronization
-    const normalizeAndSyncCategories = (categoriesList, isSale) => {
+    // Category Normalization and Sale/BOGO Synchronization
+    const normalizeAndSyncCategories = (categoriesList, isSale, isBogo) => {
         let clean = Array.isArray(categoriesList) 
             ? categoriesList.filter(c => typeof c === 'string').map(c => c.trim())
             : [];
@@ -226,6 +226,14 @@ const AdminProducts = () => {
         } else {
             const saleSubcats = ['Bras on Sale', 'Panties on Sale', 'Combo Pack Offers', 'Clearance'];
             result = result.filter(c => c !== 'Sale%' && !saleSubcats.includes(c));
+        }
+
+        if (isBogo) {
+            if (!result.some(c => /^(bogo|buy 1 get 1|buy 1 get 1 free)$/i.test(c))) {
+                result.push('Buy 1 Get 1');
+            }
+        } else {
+            result = result.filter(c => !/^(bogo|buy 1 get 1|buy 1 get 1 free)$/i.test(c));
         }
 
         return result;
@@ -417,6 +425,7 @@ const AdminProducts = () => {
             colorConfigs: product.color_configs || product.colorConfigs || [],
             categories: product.categories || (product.category ? [product.category] : []),
             isSale: product.is_sale || (Array.isArray(product.categories) && product.categories.includes('Sale%')) || false,
+            isBogo: product.is_bogo || (Array.isArray(product.categories) && product.categories.some(c => typeof c === 'string' && /^(bogo|buy 1 get 1|buy 1 get 1 free)$/i.test(c.trim()))) || (product.specifications || []).some(s => s.name === 'is_bogo' && s.value === 'true') || false,
             material_id: product.material_id || null,
             size_guide_id: product.size_guide_id || null
         });
@@ -712,14 +721,14 @@ const AdminProducts = () => {
         setIsSubmitting(true);
         setLoading(true); // Keep general loading active too
 
-        let cleanCategories = normalizeAndSyncCategories(formData.categories, formData.isSale);
+        let cleanCategories = normalizeAndSyncCategories(formData.categories, formData.isSale, formData.isBogo);
 
         // Ensure IDs are valid UUIDs or null
         const isValidUUID = (id) => id && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
-        // Filter out any previous combo specs and append current combo info safely into specifications array
+        // Filter out any previous combo/bogo specs and append current combo/bogo info safely into specifications array
         const baseSpecs = (formData.specifications || []).filter(s => 
-            s.name !== 'is_combo' && s.name !== 'bundled_product_ids' && s.name !== 'combo_type'
+            s.name !== 'is_combo' && s.name !== 'bundled_product_ids' && s.name !== 'combo_type' && s.name !== 'is_bogo'
         );
 
         if (formData.is_combo) {
@@ -728,6 +737,10 @@ const AdminProducts = () => {
                 { name: 'bundled_product_ids', value: JSON.stringify(formData.bundled_product_ids || []) },
                 { name: 'combo_type', value: 'bra_panty' }
             );
+        }
+
+        if (formData.isBogo) {
+            baseSpecs.push({ name: 'is_bogo', value: 'true' });
         }
 
         const payload = {
@@ -1370,7 +1383,7 @@ const AdminProducts = () => {
                                     />
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-500/5 rounded-2xl border border-red-100 dark:border-red-500/10 mb-4">
+                            <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-500/5 rounded-2xl border border-red-100 dark:border-red-500/10 mb-3">
                                 <input 
                                     type="checkbox" 
                                     id="isSale"
@@ -1380,6 +1393,18 @@ const AdminProducts = () => {
                                 />
                                 <label htmlFor="isSale" className="text-sm font-bold text-red-600 dark:text-red-400 cursor-pointer">
                                     Is Sales Running? <span className="font-normal opacity-80">(Displays "SALE" badge on storefront)</span>
+                                </label>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-rose-50 dark:bg-rose-500/5 rounded-2xl border border-rose-200 dark:border-rose-500/15 mb-4">
+                                <input 
+                                    type="checkbox" 
+                                    id="isBogo"
+                                    className="w-5 h-5 rounded border-rose-300 text-[#944555] focus:ring-[#944555]/50" 
+                                    checked={formData.isBogo} 
+                                    onChange={(e) => setFormData({ ...formData, isBogo: e.target.checked })} 
+                                />
+                                <label htmlFor="isBogo" className="text-sm font-bold text-[#944555] dark:text-rose-300 cursor-pointer">
+                                    Eligible for Buy 1 Get 1 (BOGO)? <span className="font-normal opacity-80 text-xs">(Enables BOGO discount & listing in BOGO category)</span>
                                 </label>
                             </div>
                             <div className="border-t border-slate-100 dark:border-slate-800 pt-4 mt-2">
