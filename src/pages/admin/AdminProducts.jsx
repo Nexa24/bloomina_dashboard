@@ -184,10 +184,17 @@ const AdminProducts = () => {
 
         clean.forEach(cat => {
             const low = cat.toLowerCase();
-            if (low === 'bras' || low === 'bra' || low === 'bras on sale' || low === 'wireless bras' || low === 'padded & push-up' || low === 'lace bras' || low === 'bralettes' || low === 'everyday comfort' || low === 'nursing bras') {
+            if (
+                low === 'bras' || low === 'bra' || low === 'bras on sale' || 
+                low === 'wireless bras' || low === 'padded & push-up' || low === 'lace bras' || 
+                low === 'bralettes' || low === 'everyday comfort' || low === 'nursing bras' ||
+                low === 'padded' || low === 'non-padded' || low === 'padded bras' || low === 'non-padded bras' ||
+                low === 'push-up bras' || low === 'underwired bras' || low === 'sports bras' ||
+                low === 't-shirt bras' || low === 'full coverage bras' || low === 'minimizer bra'
+            ) {
                 hasBra = true;
                 normalized.add(cat);
-            } else if (low === 'panties' || low === 'panty' || low === 'panties on sale' || low === 'seamless panties' || low === 'high-waist panties' || low === 'bikini panties' || low === 'thongs' || low === 'hipsters' || low === 'period panties') {
+            } else if (low === 'panties' || low === 'panty' || low === 'panties on sale' || low === 'seamless panties' || low === 'high-waist panties' || low === 'bikini panties' || low === 'thongs' || low === 'hipsters' || low === 'period panties' || low === 'modal panties' || low === 'cotton lycra panties') {
                 hasPanty = true;
                 normalized.add(cat);
             } else if (low === 'combo packs' || low === 'combo pack' || low === 'combo' || low === 'combos' || low === 'combo pack offers' || low === 'bra & panty sets' || low === 'multi-pack panties' || low === 'value packs') {
@@ -201,9 +208,19 @@ const AdminProducts = () => {
             }
         });
 
-        if (hasBra && !Array.from(normalized).some(c => c.toLowerCase() === 'bras')) normalized.add('Bras');
-        if (hasPanty && !Array.from(normalized).some(c => c.toLowerCase() === 'panties')) normalized.add('Panties');
-        if (hasCombo && !Array.from(normalized).some(c => c.toLowerCase() === 'combo packs')) normalized.add('Combo Packs');
+        // Ensure main categories match the existing case in database if present (e.g. BRAS)
+        if (hasBra && !Array.from(normalized).some(c => c.toLowerCase() === 'bras')) {
+            const dbBra = categoryHierarchy.categories.find(c => c.name.trim().toLowerCase() === 'bras');
+            normalized.add(dbBra ? dbBra.name : 'BRAS');
+        }
+        if (hasPanty && !Array.from(normalized).some(c => c.toLowerCase() === 'panties')) {
+            const dbPanty = categoryHierarchy.categories.find(c => c.name.trim().toLowerCase() === 'panties');
+            normalized.add(dbPanty ? dbPanty.name : 'Panties');
+        }
+        if (hasCombo && !Array.from(normalized).some(c => c.toLowerCase() === 'combo packs')) {
+            const dbCombo = categoryHierarchy.categories.find(c => c.name.trim().toLowerCase() === 'combo packs');
+            normalized.add(dbCombo ? dbCombo.name : 'Combo Packs');
+        }
 
         let result = Array.from(normalized);
 
@@ -356,9 +373,9 @@ const AdminProducts = () => {
             const hasType = rows.length === 0 || rows[0].category_type !== undefined;
 
             if (hasType) {
-                const universals = rows.filter(r => r.category_type === 'universal');
-                const mainCats = rows.filter(r => r.category_type === 'category');
-                const subCats = rows.filter(r => r.category_type === 'subcategory');
+                const universals = rows.filter(r => r.category_type === 'universal').map(r => ({ ...r, name: r.name ? r.name.trim() : '' }));
+                const mainCats = rows.filter(r => r.category_type === 'category').map(r => ({ ...r, name: r.name ? r.name.trim() : '' }));
+                const subCats = rows.filter(r => r.category_type === 'subcategory').map(r => ({ ...r, name: r.name ? r.name.trim() : '' }));
 
                 setCategoryHierarchy({
                     universal: universals,
@@ -369,7 +386,7 @@ const AdminProducts = () => {
                 });
             } else {
                 // Fallback: treat all as flat categories (old schema)
-                setCategoryHierarchy({ universal: [], categories: rows.map(r => ({ ...r, subs: [] })) });
+                setCategoryHierarchy({ universal: [], categories: rows.map(r => ({ ...r, name: r.name ? r.name.trim() : '', subs: [] })) });
             }
         } catch {
             // Fallback for very old schema with no hierarchy columns
@@ -423,7 +440,9 @@ const AdminProducts = () => {
             specifications: product.specifications || [],
             images: product.images || [],
             colorConfigs: product.color_configs || product.colorConfigs || [],
-            categories: product.categories || (product.category ? [product.category] : []),
+            categories: (product.categories || (product.category ? [product.category] : []))
+                .filter(c => typeof c === 'string' && c.trim())
+                .map(c => c.trim()),
             isSale: product.is_sale || (Array.isArray(product.categories) && product.categories.includes('Sale%')) || false,
             isBogo: product.is_bogo || (Array.isArray(product.categories) && product.categories.some(c => typeof c === 'string' && /^(bogo|buy 1 get 1|buy 1 get 1 free)$/i.test(c.trim()))) || (product.specifications || []).some(s => s.name === 'is_bogo' && s.value === 'true') || false,
             material_id: product.material_id || null,
@@ -1805,15 +1824,16 @@ const AdminProducts = () => {
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {categoryHierarchy.universal.map(tag => {
-                                                const isOn = formData.categories?.includes(tag.name);
+                                                const tagName = tag.name.trim();
+                                                const isOn = (formData.categories || []).some(c => c && c.trim().toLowerCase() === tagName.toLowerCase());
                                                 return (
                                                     <button
                                                         key={tag.id}
                                                         type="button"
                                                         onClick={() => {
                                                             let next = [...(formData.categories || [])];
-                                                            if (isOn) next = next.filter(c => c !== tag.name);
-                                                            else next.push(tag.name);
+                                                            if (isOn) next = next.filter(c => c && c.trim().toLowerCase() !== tagName.toLowerCase());
+                                                            else next.push(tagName);
                                                             setFormData({ ...formData, categories: next });
                                                         }}
                                                         className={`px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 ${isOn
@@ -1839,23 +1859,25 @@ const AdminProducts = () => {
                                     ) : (
                                         <div className="flex flex-wrap gap-2">
                                             {categoryHierarchy.categories.map(cat => {
-                                                const isOn = formData.categories?.includes(cat.name);
+                                                const catName = cat.name.trim();
+                                                const isOn = (formData.categories || []).some(c => c && c.trim().toLowerCase() === catName.toLowerCase());
                                                 return (
                                                     <button
                                                         key={cat.id}
                                                         type="button"
                                                         onClick={() => {
-                                                            const allMainNames = categoryHierarchy.categories.map(c => c.name);
-                                                            const allSubNames = categoryHierarchy.categories.flatMap(c => c.subs.map(s => s.name));
+                                                            const thisSubsLower = cat.subs.map(s => s.name.trim().toLowerCase());
                                                             // When toggling a main category off: also remove its subs
                                                             let next = [...(formData.categories || [])];
                                                             if (isOn) {
-                                                                const thisSubs = cat.subs.map(s => s.name);
-                                                                next = next.filter(c => c !== cat.name && !thisSubs.includes(c));
+                                                                next = next.filter(c => {
+                                                                    const low = c ? c.trim().toLowerCase() : '';
+                                                                    return low !== catName.toLowerCase() && !thisSubsLower.includes(low);
+                                                                });
                                                             } else {
                                                                 // Allow selecting multiple main categories together (e.g. both BRAS and PANTIES for set/combo)
-                                                                if (!next.includes(cat.name)) {
-                                                                    next.push(cat.name);
+                                                                if (!next.some(c => c && c.trim().toLowerCase() === catName.toLowerCase())) {
+                                                                    next.push(catName);
                                                                 }
                                                             }
                                                             setFormData({ ...formData, categories: next });
@@ -1874,51 +1896,67 @@ const AdminProducts = () => {
 
                                 {/* ─── Tier 3: Sub-Categories ─── */}
                                 {(() => {
-                                    const allMainNames = categoryHierarchy.categories.map(c => c.name);
-                                    const selectedMain = categoryHierarchy.categories.find(c => formData.categories?.includes(c.name));
-                                    if (!selectedMain || selectedMain.subs.length === 0) return null;
+                                    const selectedMains = categoryHierarchy.categories.filter(c => 
+                                        (formData.categories || []).some(catName => catName && catName.trim().toLowerCase() === c.name.trim().toLowerCase())
+                                    );
+                                    if (selectedMains.length === 0) return null;
+                                    
                                     return (
-                                        <div className="p-4 bg-blue-50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 animate-fade-in">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-                                                    <span className="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
-                                                    {selectedMain.name} Sub-Categories
-                                                </p>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const subNames = selectedMain.subs.map(s => s.name);
-                                                        setFormData({ ...formData, categories: (formData.categories || []).filter(c => !subNames.includes(c)) });
-                                                    }}
-                                                    className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
-                                                >
-                                                    Clear All
-                                                </button>
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-2">
-                                                {selectedMain.subs.map(sub => {
-                                                    const isOn = formData.categories?.includes(sub.name);
-                                                    return (
-                                                        <label key={sub.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${isOn ? 'bg-white dark:bg-[#1a1c23] border-blue-400 text-blue-600 dark:text-blue-400' : 'bg-transparent border-slate-200 dark:border-slate-800 text-slate-500'}`}>
-                                                            <input
-                                                                type="checkbox"
-                                                                className="hidden"
-                                                                checked={isOn}
-                                                                onChange={() => {
-                                                                    let next = [...(formData.categories || [])];
-                                                                    if (isOn) next = next.filter(c => c !== sub.name);
-                                                                    else next.push(sub.name);
-                                                                    setFormData({ ...formData, categories: next });
+                                        <div className="space-y-3">
+                                            {selectedMains.map(selectedMain => {
+                                                if (!selectedMain.subs || selectedMain.subs.length === 0) return null;
+                                                return (
+                                                    <div key={selectedMain.id} className="p-4 bg-blue-50 dark:bg-blue-500/5 rounded-2xl border border-blue-100 dark:border-blue-500/20 animate-fade-in">
+                                                        <div className="flex justify-between items-center mb-3">
+                                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                                                                <span className="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
+                                                                {selectedMain.name} Sub-Categories
+                                                            </p>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    const subNamesLower = selectedMain.subs.map(s => s.name.trim().toLowerCase());
+                                                                    setFormData({ 
+                                                                        ...formData, 
+                                                                        categories: (formData.categories || []).filter(c => !subNamesLower.includes(c ? c.trim().toLowerCase() : '')) 
+                                                                    });
                                                                 }}
-                                                            />
-                                                            <div className={`w-4 h-4 rounded flex items-center justify-center border shrink-0 transition-all ${isOn ? 'bg-blue-500 border-blue-500' : 'border-slate-300 dark:border-slate-700'}`}>
-                                                                {isOn && <Check className="w-3 h-3 text-white" />}
-                                                            </div>
-                                                            <span className="text-xs font-bold">{sub.name}</span>
-                                                        </label>
-                                                    );
-                                                })}
-                                            </div>
+                                                                className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
+                                                            >
+                                                                Clear All
+                                                            </button>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 gap-2">
+                                                            {selectedMain.subs.map(sub => {
+                                                                const subName = sub.name.trim();
+                                                                const isOn = (formData.categories || []).some(c => c && c.trim().toLowerCase() === subName.toLowerCase());
+                                                                return (
+                                                                    <label key={sub.id} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all cursor-pointer ${isOn ? 'bg-white dark:bg-[#1a1c23] border-blue-400 text-blue-600 dark:text-blue-400' : 'bg-transparent border-slate-200 dark:border-slate-800 text-slate-500'}`}>
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            className="hidden"
+                                                                            checked={isOn}
+                                                                            onChange={() => {
+                                                                                let next = [...(formData.categories || [])];
+                                                                                if (isOn) {
+                                                                                    next = next.filter(c => c && c.trim().toLowerCase() !== subName.toLowerCase());
+                                                                                } else {
+                                                                                    next.push(subName);
+                                                                                }
+                                                                                setFormData({ ...formData, categories: next });
+                                                                            }}
+                                                                        />
+                                                                        <div className={`w-4 h-4 rounded flex items-center justify-center border shrink-0 transition-all ${isOn ? 'bg-blue-500 border-blue-500' : 'border-slate-300 dark:border-slate-700'}`}>
+                                                                            {isOn && <Check className="w-3 h-3 text-white" />}
+                                                                        </div>
+                                                                        <span className="text-xs font-bold">{sub.name}</span>
+                                                                    </label>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     );
                                 })()}

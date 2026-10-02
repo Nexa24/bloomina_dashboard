@@ -195,7 +195,8 @@ const AdminCategories = () => {
         if (isSubmitting) return;
         setIsSubmitting(true);
         try {
-            const finalSlug = formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            const trimmedName = formData.name.trim();
+            const finalSlug = (formData.slug || trimmedName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')).trim();
 
             if (!editingId) {
                 const { data: existing } = await supabase.from('categories').select('id').eq('slug', finalSlug).single();
@@ -203,7 +204,7 @@ const AdminCategories = () => {
             }
 
             const payload = {
-                name: formData.name,
+                name: trimmedName,
                 slug: finalSlug,
                 image: formData.image || null,
                 display_on_home: formData.display_on_home,
